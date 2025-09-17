@@ -1,7 +1,3 @@
-
-import { RouterLink } from 'vue-router';
-
-import { RouterLink } from 'vue-router';
 <template>
     <div class="navbar bg-[#39AEA9] text-white shadow-md">
   <div class="navbar-start">
@@ -15,11 +11,11 @@ import { RouterLink } from 'vue-router';
   <div class="navbar-center hidden lg:flex">
     <ul class="menu menu-horizontal px-1 space-x-6">
       <li><RouterLink
-         to="/Students" class ="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Students</RouterLink></li>
+         to="/students" class ="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Students</RouterLink></li>
       <li><RouterLink
-         to="/Programs" class ="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Programs</RouterLink></li>
+         to="/programs" class ="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Programs</RouterLink></li>
       <li><RouterLink
-         to="/Colleges" class ="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Colleges</RouterLink></li>
+         to="/colleges" class ="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Colleges</RouterLink></li>
     </ul>
   </div>
   <div class="navbar-end">
