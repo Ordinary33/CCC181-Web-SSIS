@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from flask import Flask, request
 from flask_cors import CORS
 from flask import jsonify
 from flask_supabase import Supabase
@@ -27,10 +27,42 @@ def test():
     message = "This is a test!"
     return jsonify(message)
 
-@app.route('/students')
+@app.route('/students', methods=['GET'])
 def get_students():
     response = supabase_extension.client.from_('students').select('*').execute()
     return jsonify(response.data)
+
+@app.route('/students', methods=['POST'])
+def create_student():
+    try:
+        data = request.get_json()
+        
+        required_fields = ['student_id', 'first_name', 'last_name', 'year_level', 'gender', 'program_code']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'{field} is required'}), 400
+        
+        existing_student = supabase_extension.client.from_('students').select('student_id').eq('student_id', data['student_id']).execute()
+        
+        print(f"Checking for duplicate ID: {data['student_id']}")
+        print(f"Existing students found: {existing_student.data}")
+        
+        if existing_student.data:
+            print(f"Duplicate found! Returning 409 error")
+            return jsonify({'error': 'Student ID already exists. Please use a different ID.'}), 409
+        
+        response = supabase_extension.client.from_('students').insert(data).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'Student created successfully',
+                'student': response.data[0]
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to create student'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
  
 @app.route('/programs')
 def get_programs():
