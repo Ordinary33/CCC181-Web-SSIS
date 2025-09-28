@@ -16,6 +16,15 @@ export const useProgramsStore = defineStore('programs', {
       } finally {
         this.loading = false
       }
+    },
+    async refreshPrograms() {
+      this.loading = true
+      try {
+        const res = await axios.get('http://127.0.0.1:5000/programs')
+        this.programs = res.data
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

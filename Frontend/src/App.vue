@@ -3,6 +3,7 @@ import { RouterLink, RouterView } from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import AddFAB from './components/AddFAB.vue'
 import StudentModal from './components/Modals/StudentModal.vue'
+import ProgramModal from './components/Modals/ProgramModal.vue'
 
 </script>
 
@@ -16,6 +17,7 @@ import StudentModal from './components/Modals/StudentModal.vue'
   <RouterView />
   
   <StudentModal />
+  <ProgramModal />
 </div>
 </template>
 
