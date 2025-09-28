@@ -10,15 +10,21 @@ export const useStudentsStore = defineStore('students', {
     async fetchStudents() {
       if (this.students.length > 0) return
       this.loading = true
-      const res = await axios.get('http://127.0.0.1:5000/students')
-      this.students = res.data
-      this.loading = false
+      try {
+        const res = await axios.get('http://127.0.0.1:5000/students')
+        this.students = res.data
+      } finally {
+        this.loading = false
+      }
     },
     async refreshStudents() {
       this.loading = true
-      const res = await axios.get('http://127.0.0.1:5000/students')
-      this.students = res.data
-      this.loading = false
+      try {
+        const res = await axios.get('http://127.0.0.1:5000/students')
+        this.students = res.data
+      } finally {
+        this.loading = false
+      }
     }
   }
 })

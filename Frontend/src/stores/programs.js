@@ -8,11 +8,14 @@ export const useProgramsStore = defineStore('programs', {
   }),
   actions: {
     async fetchPrograms() {
-      if (this.programs.length > 0) return   
+      if (this.programs.length > 0) return
       this.loading = true
-      const res = await axios.get('http://127.0.0.1:5000/programs')
-      this.programs = res.data
-      this.loading = false
+      try {
+        const res = await axios.get('http://127.0.0.1:5000/programs')
+        this.programs = res.data
+      } finally {
+        this.loading = false
+      }
     }
   }
 })
