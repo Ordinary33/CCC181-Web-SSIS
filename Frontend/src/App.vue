@@ -4,6 +4,7 @@ import Navbar from './components/Navbar.vue'
 import AddFAB from './components/AddFAB.vue'
 import StudentModal from './components/Modals/StudentModal.vue'
 import ProgramModal from './components/Modals/ProgramModal.vue'
+import CollegeModal from './components/Modals/CollegeModal.vue'
 
 </script>
 
@@ -18,6 +19,7 @@ import ProgramModal from './components/Modals/ProgramModal.vue'
   
   <StudentModal />
   <ProgramModal />
+  <CollegeModal />
 </div>
 </template>
 

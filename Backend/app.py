@@ -105,6 +105,38 @@ def create_program():
 def get_colleges():
     response = supabase_extension.client.from_('colleges').select('*').execute()
     return jsonify(response.data)
+
+@app.route('/colleges', methods=['POST'])
+def create_college():
+    try:
+        data = request.get_json()
+        
+        required_fields = ['college_code', 'college_name']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'{field} is required'}), 400
+        
+        existing_college = supabase_extension.client.from_('colleges').select('college_code').eq('college_code', data['college_code']).execute()
+        
+        print(f"Checking for duplicate Code: {data['college_code']}")
+        print(f"Existing colleges found: {existing_college.data}")
+        
+        if existing_college.data:
+            print(f"Duplicate found! Returning 409 error")
+            return jsonify({'error': 'College Code already exists. Please use a different Code.'}), 409
+        
+        response = supabase_extension.client.from_('colleges').insert(data).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'College created successfully',
+                'college': response.data[0]
+            }), 201
+        else:
+            return jsonify({'error': 'Failed to create college'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
  
 if __name__ == "__main__":
     app.run(debug=True)
