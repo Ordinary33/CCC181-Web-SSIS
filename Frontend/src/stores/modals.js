@@ -17,15 +17,11 @@ export const useModalStore = defineStore('modal', () => {
   }
 
   function setEditMode(editMode) {
-    console.log('Setting edit mode to:', editMode)
     isEditMode.value = editMode
-    console.log('Edit mode is now:', isEditMode.value)
   }
 
   function setCurrentStudent(student) {
-    console.log('Setting current student to:', student)
     currentStudent.value = student
-    console.log('Current student is now:', currentStudent.value)
   }
 
   return { activeModal, isEditMode, currentStudent, open, close, setEditMode, setCurrentStudent }

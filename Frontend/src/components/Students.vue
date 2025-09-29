@@ -44,10 +44,10 @@
 
   const modal = useModalStore()
   const programsStore = useProgramsStore()
-
+  const store = useStudentsStore()
 
   onMounted(() => programsStore.fetchPrograms())
-  const store = useStudentsStore()
+  onMounted(() => store.fetchStudents())
   const query = ref('')
   const filterBy = ref('All')
   const sortBy = ref('ID')
@@ -63,7 +63,7 @@
     'Program': 'program_code'
   }
   
-  onMounted(() => store.fetchStudents())
+ 
   
   const filteredData = computed(() => {
     let result = store.students.filter(s => {
@@ -97,20 +97,23 @@
   })
 
   const editStudent = (student) => {
-    console.log('Edit student clicked:', student)
-    // Set the student data first
     modal.setCurrentStudent(student)
     modal.setEditMode(true)
-    console.log('Edit mode set to:', modal.isEditMode)
-    console.log('Current student set to:', modal.currentStudent)
-    // Then open the modal
     modal.open('studentForm')
   }
 
-  const deleteStudent = (student) => {
-    if (confirm(`Are you sure you want to delete student ${student.first_name} ${student.last_name}?`)) {
-      // TODO: Implement delete functionality
-      console.log('Delete student:', student)
+  const deleteStudent = async (student) => {
+    if (confirm(`Are you sure you want to delete student ${student.student_id}?`)) {
+      try {
+        const result = await store.deleteStudent(student.student_id)
+        
+        if (result.success) {
+          alert(result.message)
+        }
+      } catch (error) {
+        console.error('Error deleting student:', error)
+        alert(`Error: ${error.message}`)
+      }
     }
   }
   

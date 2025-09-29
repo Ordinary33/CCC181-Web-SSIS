@@ -44,11 +44,7 @@ def create_student():
         
         existing_student = supabase_extension.client.from_('students').select('student_id').eq('student_id', data['student_id']).execute()
         
-        print(f"Checking for duplicate ID: {data['student_id']}")
-        print(f"Existing students found: {existing_student.data}")
-        
         if existing_student.data:
-            print(f"Duplicate found! Returning 409 error")
             return jsonify({'error': 'Student ID already exists. Please use a different ID.'}), 409
         
         response = supabase_extension.client.from_('students').insert(data).execute()
@@ -74,20 +70,16 @@ def update_student(student_id):
             if field not in data or not data[field]:
                 return jsonify({'error': f'{field} is required'}), 400
         
-        # Check if student exists
         existing_student = supabase_extension.client.from_('students').select('student_id').eq('student_id', student_id).execute()
         
         if not existing_student.data:
             return jsonify({'error': 'Student not found'}), 404
         
-        # If the student_id is being changed, check for duplicates
         if data['student_id'] != student_id:
             duplicate_check = supabase_extension.client.from_('students').select('student_id').eq('student_id', data['student_id']).execute()
             
             if duplicate_check.data:
                 return jsonify({'error': 'Student ID already exists. Please use a different ID.'}), 409
-        
-        # Update the student
         response = supabase_extension.client.from_('students').update(data).eq('student_id', student_id).execute()
         
         if response.data:
@@ -97,6 +89,27 @@ def update_student(student_id):
             }), 200
         else:
             return jsonify({'error': 'Failed to update student'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/students/<student_id>', methods=['DELETE'])
+def delete_student(student_id):
+    try:
+        existing_student = supabase_extension.client.from_('students').select('student_id').eq('student_id', student_id).execute()
+        
+        if not existing_student.data:
+            return jsonify({'error': 'Student not found'}), 404
+        
+        response = supabase_extension.client.from_('students').delete().eq('student_id', student_id).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'Student deleted successfully',
+                'student_id': student_id
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to delete student'}), 500
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -118,11 +131,7 @@ def create_program():
         
         existing_program = supabase_extension.client.from_('programs').select('program_code').eq('program_code', data['program_code']).execute()
         
-        print(f"Checking for duplicate Code: {data['program_code']}")
-        print(f"Existing programs found: {existing_program.data}")
-        
         if existing_program.data:
-            print(f"Duplicate found! Returning 409 error")
             return jsonify({'error': 'Program Code already exists. Please use a different Code.'}), 409
         
         response = supabase_extension.client.from_('programs').insert(data).execute()
@@ -155,11 +164,7 @@ def create_college():
         
         existing_college = supabase_extension.client.from_('colleges').select('college_code').eq('college_code', data['college_code']).execute()
         
-        print(f"Checking for duplicate Code: {data['college_code']}")
-        print(f"Existing colleges found: {existing_college.data}")
-        
         if existing_college.data:
-            print(f"Duplicate found! Returning 409 error")
             return jsonify({'error': 'College Code already exists. Please use a different Code.'}), 409
         
         response = supabase_extension.client.from_('colleges').insert(data).execute()

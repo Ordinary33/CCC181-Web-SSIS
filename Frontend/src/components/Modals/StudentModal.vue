@@ -18,7 +18,6 @@ const formData = reactive({
   program_code: ''
 })
 
-// Watch for edit mode changes and populate form
 watch(() => modal.isEditMode, (isEdit) => {
   if (isEdit && modal.currentStudent) {
     formData.student_id = modal.currentStudent.student_id
@@ -32,7 +31,6 @@ watch(() => modal.isEditMode, (isEdit) => {
   }
 })
 
-// Also watch for currentStudent changes
 watch(() => modal.currentStudent, (student) => {
   if (student && modal.isEditMode) {
     formData.student_id = student.student_id
@@ -134,24 +132,14 @@ const handleSubmit = async (e) => {
       }
       
       let response
-      console.log('Edit mode:', modal.isEditMode)
-      console.log('Current student:', modal.currentStudent)
       
       if (modal.isEditMode) {
-        // Update existing student
-        console.log('Updating student with ID:', formData.student_id)
         response = await axios.put(`http://127.0.0.1:5000/students/${formData.student_id}`, studentData)
       } else {
-        // Create new student
-        console.log('Creating new student')
         response = await axios.post('http://127.0.0.1:5000/students', studentData)
       }
       
       if (response.status === 200 || response.status === 201) {
-        console.log('Student saved successfully:', response.data)
-        console.log('Edit mode at success:', modal.isEditMode)
-        
-        // Store edit mode before closing modal
         const wasEditMode = modal.isEditMode
         
         resetForm()
@@ -160,7 +148,6 @@ const handleSubmit = async (e) => {
         await studentsStore.refreshStudents()
         
         const successMessage = wasEditMode ? 'Student updated successfully!' : 'Student added successfully!'
-        console.log('Success message:', successMessage)
         alert(successMessage)
         
       } else {
@@ -171,7 +158,6 @@ const handleSubmit = async (e) => {
       console.error('Error saving student:', error)
       
       if (error.response) {
-        // Server responded with an error status
         const status = error.response.status
         const errorData = error.response.data
         
@@ -191,7 +177,6 @@ const handleSubmit = async (e) => {
       }
       
     } finally {
-      // Reset button state
       const saveButton = e.target.querySelector('.btn-save')
       saveButton.textContent = 'Save'
       saveButton.disabled = false
