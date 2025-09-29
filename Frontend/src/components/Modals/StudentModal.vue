@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref, reactive } from 'vue'
+import { onMounted, ref, reactive, watch } from 'vue'
 import axios from 'axios'
 import { useModalStore } from '@/stores/modals'
 import { useProgramsStore } from '@/stores/programs'
@@ -16,6 +16,32 @@ const formData = reactive({
   year_level: '',
   gender: '',
   program_code: ''
+})
+
+// Watch for edit mode changes and populate form
+watch(() => modal.isEditMode, (isEdit) => {
+  if (isEdit && modal.currentStudent) {
+    formData.student_id = modal.currentStudent.student_id
+    formData.first_name = modal.currentStudent.first_name
+    formData.last_name = modal.currentStudent.last_name
+    formData.year_level = modal.currentStudent.year_level
+    formData.gender = modal.currentStudent.gender
+    formData.program_code = modal.currentStudent.program_code
+  } else if (!isEdit) {
+    resetForm()
+  }
+})
+
+// Also watch for currentStudent changes
+watch(() => modal.currentStudent, (student) => {
+  if (student && modal.isEditMode) {
+    formData.student_id = student.student_id
+    formData.first_name = student.first_name
+    formData.last_name = student.last_name
+    formData.year_level = student.year_level
+    formData.gender = student.gender
+    formData.program_code = student.program_code
+  }
 })
 
 const errors = reactive({
@@ -107,17 +133,35 @@ const handleSubmit = async (e) => {
         program_code: formData.program_code
       }
       
-      const response = await axios.post('http://127.0.0.1:5000/students', studentData)
+      let response
+      console.log('Edit mode:', modal.isEditMode)
+      console.log('Current student:', modal.currentStudent)
       
-      if (response.status === 201) {
+      if (modal.isEditMode) {
+        // Update existing student
+        console.log('Updating student with ID:', formData.student_id)
+        response = await axios.put(`http://127.0.0.1:5000/students/${formData.student_id}`, studentData)
+      } else {
+        // Create new student
+        console.log('Creating new student')
+        response = await axios.post('http://127.0.0.1:5000/students', studentData)
+      }
+      
+      if (response.status === 200 || response.status === 201) {
         console.log('Student saved successfully:', response.data)
+        console.log('Edit mode at success:', modal.isEditMode)
+        
+        // Store edit mode before closing modal
+        const wasEditMode = modal.isEditMode
         
         resetForm()
         modal.close()
         
         await studentsStore.refreshStudents()
         
-        alert('Student added successfully!')
+        const successMessage = wasEditMode ? 'Student updated successfully!' : 'Student added successfully!'
+        console.log('Success message:', successMessage)
+        alert(successMessage)
         
       } else {
         throw new Error('Failed to save student')
@@ -178,7 +222,7 @@ const resetForm = () => {
 <template>
   <div v-if="modal.activeModal === 'studentForm'" class="modal-overlay">
     <div class="modal-content">
-      <h1 class="modal-title">Add Student</h1>
+      <h1 class="modal-title">{{ modal.isEditMode ? 'Edit Student' : 'Add Student' }}</h1>
       <form @submit="handleSubmit">
         <div class="form-group">
           <label>Student ID:</label>
@@ -189,6 +233,8 @@ const resetForm = () => {
             placeholder="2024-0001"
             maxlength="9"
             :class="{ 'error': errors.student_id }"
+            :readonly="modal.isEditMode"
+            :style="modal.isEditMode ? 'background-color: #f5f5f5; cursor: not-allowed;' : ''"
           />
           <span v-if="errors.student_id" class="error-message">{{ errors.student_id }}</span>
         </div>
@@ -252,7 +298,7 @@ const resetForm = () => {
          </div>
         <div class="button-group">
           <button type="button" @click="modal.close(); resetForm()" class="btn btn-cancel">Cancel</button>
-          <button type="submit" class="btn btn-save">Save</button>
+          <button type="submit" class="btn btn-save">{{ modal.isEditMode ? 'Update' : 'Save' }}</button>
         </div>
       </form>
     </div>

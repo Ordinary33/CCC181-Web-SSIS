@@ -63,6 +63,43 @@ def create_student():
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+@app.route('/students/<student_id>', methods=['PUT'])
+def update_student(student_id):
+    try:
+        data = request.get_json()
+        
+        required_fields = ['student_id', 'first_name', 'last_name', 'year_level', 'gender', 'program_code']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'{field} is required'}), 400
+        
+        # Check if student exists
+        existing_student = supabase_extension.client.from_('students').select('student_id').eq('student_id', student_id).execute()
+        
+        if not existing_student.data:
+            return jsonify({'error': 'Student not found'}), 404
+        
+        # If the student_id is being changed, check for duplicates
+        if data['student_id'] != student_id:
+            duplicate_check = supabase_extension.client.from_('students').select('student_id').eq('student_id', data['student_id']).execute()
+            
+            if duplicate_check.data:
+                return jsonify({'error': 'Student ID already exists. Please use a different ID.'}), 409
+        
+        # Update the student
+        response = supabase_extension.client.from_('students').update(data).eq('student_id', student_id).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'Student updated successfully',
+                'student': response.data[0]
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to update student'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
  
 @app.route('/programs')
 def get_programs():
