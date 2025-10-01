@@ -1,5 +1,5 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useModalStore } from '@/stores/modals'
 import { useProgramsStore } from '@/stores/programs'
@@ -13,6 +13,23 @@ const formData = reactive({
   program_code: '',
   program_name: '',
   college_code: ''
+})
+
+watch(() => modal.isEditMode, (isEdit) => {
+  if (isEdit && modal.currentStudent) {
+    formData.program_code = modal.currentStudent.program_code
+    formData.program_name = modal.currentStudent.program_name
+    formData.college_code = modal.currentStudent.college_code
+    resetForm()
+  }
+})
+
+watch(() => modal.currentProgram, (program) => {
+  if (program && modal.isEditMode) {
+    formData.program_code = program.program_code
+    formData.program_name = program.program_name
+    formData.college_code = program.college_code
+  }
 })
 
 const errors = reactive({
@@ -91,9 +108,16 @@ const handleSubmit = async (e) => {
         college_code: formData.college_code
       }
       
-      const response = await axios.post('http://127.0.0.1:5000/programs', programData)
+      let response
       
-      if (response.status === 201) {
+      if (modal.isEditMode) {
+        response = await axios.put(`http://127.0.0.1:5000/programs/${formData.program_code}`, programData)
+      } else {
+        response = await axios.post('http://127.0.0.1:5000/programs', programData)
+      }
+      
+      if (response.status === 201 || response.status === 200) {
+        const wasEditMode = modal.isEditMode
         console.log('Program saved successfully:', response.data)
         
         resetForm()
@@ -101,7 +125,8 @@ const handleSubmit = async (e) => {
         
         await programsStore.refreshPrograms()
         
-        alert('Program added successfully!')
+        const successMessage = wasEditMode ? 'Program updated successfully!' : 'Program added successfully!'
+        alert(successMessage)
         
       } else {
         throw new Error('Failed to save program')
@@ -111,7 +136,6 @@ const handleSubmit = async (e) => {
       console.error('Error saving program:', error)
       
       if (error.response) {
-        // Server responded with an error status
         const status = error.response.status
         const errorData = error.response.data
         
@@ -131,7 +155,6 @@ const handleSubmit = async (e) => {
       }
       
     } finally {
-      // Reset button state
       const saveButton = e.target.querySelector('.btn-save')
       saveButton.textContent = 'Save'
       saveButton.disabled = false
@@ -144,7 +167,7 @@ const handleSubmit = async (e) => {
 <template>
     <div v-if="modal.activeModal === 'programForm'" class="modal-overlay">
       <div class="modal-content">
-        <h1 class="modal-title">Add Program</h1>
+        <h1 class="modal-title">{{ modal.isEditMode ? 'Edit Program' : 'Add Program' }}</h1>
         <form @submit="handleSubmit">
           <div class="form-group">
             <label>Program Code:</label>
@@ -155,7 +178,9 @@ const handleSubmit = async (e) => {
               placeholder="BSCS"
               maxlength="20"
               :class="{ 'error': errors.program_code }"
-            />
+              :readonly="modal.isEditMode"
+              :style="modal.isEditMode ? 'background-color: #f5f5f5; cursor: not-allowed;' : ''"
+            />  
             <span v-if="errors.program_code" class="error-message">{{ errors.program_code }}</span>
           </div>
           <div class="form-group">
@@ -183,7 +208,7 @@ const handleSubmit = async (e) => {
           </div>
           <div class="button-group">
             <button type="button" @click="modal.close(); resetForm()" class="btn btn-cancel">Cancel</button>
-            <button type="submit" class="btn btn-save">Save</button>
+            <button type="submit" class="btn btn-save">{{ modal.isEditMode ? 'Update' : 'Save' }}</button>
           </div>
         </form>
       </div>

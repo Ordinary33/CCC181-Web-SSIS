@@ -25,16 +25,22 @@
           <td>{{ p.program_code }}</td>
           <td>{{ p.program_name }}</td>
           <td>{{ p.college_code }}</td>
+          <td><button class="btn btn-accent" @click="editProgram(p)">Edit</button></td>
+          <td><button class="btn btn-error" @click="deleteProgram(p)">Delete</button></td>
         </tr>
       </tbody>
     </table>
     </div>
+    <ProgramModal />
   </template>
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useProgramsStore } from '@/stores/programs'
+import { useModalStore } from '@/stores/modals'
 import Searchbar from './Searchbar.vue'
+import ProgramModal from './Modals/ProgramModal.vue'
 
+const modal = useModalStore()
 const store = useProgramsStore()
 const query = ref('')
 const filterBy = ref('All')
@@ -42,6 +48,27 @@ const sortBy = ref('Program Code')
 const sortDesc = ref(false)
 
 onMounted(() => store.fetchPrograms())
+
+const editProgram = (program) => {
+  modal.setCurrentProgram(program)
+  modal.setEditMode(true)
+  modal.open('programForm')
+}
+
+const deleteProgram = async (program) => {
+  if (confirm(`Are you sure you want to delete program ${program.program_code}?`)) {
+    try {
+      const result = await store.deleteProgram(program.program_code)
+      
+      if (result.success) {
+        alert(result.message)
+      }
+    } catch (error) {
+      console.error('Error deleting program:', error)
+      alert(`Error: ${error.message}`)
+    }
+  }
+}
 
 const filteredPrograms = computed(() => {
   let result = store.programs.filter(p => {

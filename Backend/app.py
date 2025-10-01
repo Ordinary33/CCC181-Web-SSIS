@@ -146,6 +146,61 @@ def create_program():
             
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+
+@app.route('/programs/<program_code>', methods=['PUT'])
+def update_program(program_code):
+    try:
+        data = request.get_json()
+        
+        required_fields = ['program_code', 'program_name', 'college_code']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'{field} is required'}), 400
+        
+        existing_program = supabase_extension.client.from_('programs').select('program_code').eq('program_code', program_code).execute()
+        
+        if not existing_program.data:
+            return jsonify({'error': 'Program not found'}), 404
+        
+        if data['program_code'] != program_code:
+            duplicate_check = supabase_extension.client.from_('programs').select('program_code').eq('program_code', data['program_code']).execute()
+            
+            if duplicate_check.data:
+                return jsonify({'error': 'Program Code already exists. Please use a different Code.'}), 409
+        response = supabase_extension.client.from_('programs').update(data).eq('program_code', program_code).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'Program updated successfully',
+                'program': response.data[0]
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to update program'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/programs/<program_code>', methods=['DELETE'])
+def delete_program(program_code):
+    try:
+        existing_program = supabase_extension.client.from_('programs').select('program_code').eq('program_code', program_code).execute()
+        
+        if not existing_program.data:
+            return jsonify({'error': 'Program not found'}), 404
+        
+        response = supabase_extension.client.from_('programs').delete().eq('program_code', program_code).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'Program deleted successfully',
+                'program_code': program_code
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to delete program'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/colleges')
 def get_colleges():
