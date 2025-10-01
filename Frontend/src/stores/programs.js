@@ -15,7 +15,7 @@ export const useProgramsStore = defineStore('programs', {
         this.programs = res.data
       } finally {
         this.loading = false
-      }
+      } 
     },
     async refreshPrograms() {
       this.loading = true
@@ -30,7 +30,7 @@ export const useProgramsStore = defineStore('programs', {
       this.loading = true
       try {
         const res = await axios.delete(`http://127.0.0.1:5000/programs/${programCode}`)
-        
+
         if (res.status === 200) {
           this.programs = this.programs.filter(p => p.program_code !== programCode)
           return { success: true, message: res.data.message }

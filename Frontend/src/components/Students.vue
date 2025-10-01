@@ -93,8 +93,12 @@
       })
     }
   
-    return result
+    return result.map(s => ({
+    ...s,
+    program_code: s.program_code ?? 'None'
+    }))
   })
+
 
   const editStudent = (student) => {
     modal.setCurrentStudent(student)

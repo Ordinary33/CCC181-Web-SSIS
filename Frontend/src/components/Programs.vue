@@ -35,11 +35,14 @@
   </template>
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useStudentsStore } from '@/stores/students'
 import { useProgramsStore } from '@/stores/programs'
 import { useModalStore } from '@/stores/modals'
 import Searchbar from './Searchbar.vue'
 import ProgramModal from './Modals/ProgramModal.vue'
 
+
+const studentStore = useStudentsStore()
 const modal = useModalStore()
 const store = useProgramsStore()
 const query = ref('')
@@ -62,6 +65,7 @@ const deleteProgram = async (program) => {
       
       if (result.success) {
         alert(result.message)
+        await studentStore.refreshStudents()
       }
     } catch (error) {
       console.error('Error deleting program:', error)

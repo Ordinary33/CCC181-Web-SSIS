@@ -2,12 +2,15 @@
 import { ref, reactive, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useModalStore } from '@/stores/modals'
+import { useStudentsStore } from '@/stores/students'
 import { useProgramsStore } from '@/stores/programs'
 import { useCollegesStore } from '@/stores/colleges'
 
 const modal = useModalStore()
 const programsStore = useProgramsStore()
 const collegesStore = useCollegesStore()
+const studentStore = useStudentsStore()
+const originalProgram = ref('')
 
 const formData = reactive({
   program_code: '',
@@ -16,11 +19,15 @@ const formData = reactive({
 })
 
 watch(() => modal.isEditMode, (isEdit) => {
-  if (isEdit && modal.currentStudent) {
-    formData.program_code = modal.currentStudent.program_code
-    formData.program_name = modal.currentStudent.program_name
-    formData.college_code = modal.currentStudent.college_code
+  if (isEdit && modal.currentProgram) {
+    formData.program_code = modal.currentProgram.program_code
+    formData.program_name = modal.currentProgram.program_name
+    formData.college_code = modal.currentProgram.college_code
+
+    originalProgram.value = modal.currentProgram.program_code
+  } else if (!isEdit) {
     resetForm()
+    originalProgram.value = ''
   }
 })
 
@@ -111,7 +118,7 @@ const handleSubmit = async (e) => {
       let response
       
       if (modal.isEditMode) {
-        response = await axios.put(`http://127.0.0.1:5000/programs/${formData.program_code}`, programData)
+        response = await axios.put(`http://127.0.0.1:5000/programs/${originalProgram.value}`, programData)
       } else {
         response = await axios.post('http://127.0.0.1:5000/programs', programData)
       }
@@ -124,6 +131,7 @@ const handleSubmit = async (e) => {
         modal.close()
         
         await programsStore.refreshPrograms()
+        await studentStore.refreshStudents()
         
         const successMessage = wasEditMode ? 'Program updated successfully!' : 'Program added successfully!'
         alert(successMessage)
@@ -178,8 +186,7 @@ const handleSubmit = async (e) => {
               placeholder="BSCS"
               maxlength="20"
               :class="{ 'error': errors.program_code }"
-              :readonly="modal.isEditMode"
-              :style="modal.isEditMode ? 'background-color: #f5f5f5; cursor: not-allowed;' : ''"
+              :style="modal.isEditMode ? 'background-color: #f5f5f5;' : ''"
             />  
             <span v-if="errors.program_code" class="error-message">{{ errors.program_code }}</span>
           </div>

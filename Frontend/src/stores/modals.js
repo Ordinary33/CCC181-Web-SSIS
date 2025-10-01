@@ -4,7 +4,9 @@ import { ref } from 'vue'
 export const useModalStore = defineStore('modal', () => {
   const activeModal = ref(null)
   const isEditMode = ref(false)
+
   const currentStudent = ref(null)
+  const currentProgram = ref(null)
 
   function open(modalName) {
     activeModal.value = modalName
@@ -14,6 +16,7 @@ export const useModalStore = defineStore('modal', () => {
     activeModal.value = null
     isEditMode.value = false
     currentStudent.value = null
+    currentProgram.value = null
   }
 
   function setEditMode(editMode) {
@@ -23,6 +26,10 @@ export const useModalStore = defineStore('modal', () => {
   function setCurrentStudent(student) {
     currentStudent.value = student
   }
+  
+  function setCurrentProgram(program) {
+    currentProgram.value = program
+  }
 
-  return { activeModal, isEditMode, currentStudent, open, close, setEditMode, setCurrentStudent }
+  return { activeModal, isEditMode, currentStudent, currentProgram, open, close, setEditMode, setCurrentStudent, setCurrentProgram }
 })
