@@ -23,23 +23,53 @@
         <tr v-for="c in filteredColleges" :key="c.college_code">
           <td>{{ c.college_code }}</td>
           <td>{{ c.college_name }}</td>
+          <td><button class="btn btn-accent" @click="editCollege(c)">Edit</button></td>
+          <td><button class="btn btn-error" @click="deleteCollege(c)">Delete</button></td>
         </tr>
       </tbody>
     </table>
     </div>
+    <CollegeModal />
   </template>
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useProgramsStore } from '@/stores/programs'
 import { useCollegesStore } from '@/stores/colleges'
+import { useModalStore } from '@/stores/modals'
 import Searchbar from './Searchbar.vue'
+import CollegeModal from './Modals/CollegeModal.vue'
 
 const store = useCollegesStore()
+const programStore = useProgramsStore()
+const modal = useModalStore()
 const query = ref('')
 const filterBy = ref('All')
 const sortBy = ref('College Code')
 const sortDesc = ref(false)
 
 onMounted(() => store.fetchColleges())
+
+const editCollege = (college) => {
+  modal.setCurrentCollege(college)
+  modal.setEditMode(true)
+  modal.open('collegeForm')
+}
+
+const deleteCollege = async (college) => {
+  if (confirm(`Are you sure you want to delete college ${college.college_code}?`)) {
+    try {
+      const result = await store.deleteCollege(college.college_code)
+
+      if (result.success) {
+        alert(result.message)
+        await programStore.refreshPrograms()
+      } 
+    } catch (error) {
+      console.error('Error deleting college:', error)
+      alert(`Error: ${error.message}`)
+    }
+  }
+}
 
 const filteredColleges = computed(() => {
   let result = store.colleges.filter(c => {

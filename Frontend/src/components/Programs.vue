@@ -24,7 +24,7 @@
         <tr v-for="p in filteredPrograms" :key="p.program_code">
           <td>{{ p.program_code }}</td>
           <td>{{ p.program_name }}</td>
-          <td>{{ p.college_code }}</td>
+          <td>{{ p.college_code || 'None'}}</td>
           <td><button class="btn btn-accent" @click="editProgram(p)">Edit</button></td>
           <td><button class="btn btn-error" @click="deleteProgram(p)">Delete</button></td>
         </tr>

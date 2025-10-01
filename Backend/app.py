@@ -235,6 +235,61 @@ def create_college():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
  
+@app.route('/colleges/<college_code>', methods=['PUT'])
+def update_college(college_code):
+    try:
+        data = request.get_json()
+        
+        required_fields = ['college_code', 'college_name']
+        for field in required_fields:
+            if field not in data or not data[field]:
+                return jsonify({'error': f'{field} is required'}), 400
+        
+        existing_college = supabase_extension.client.from_('colleges').select('college_code').eq('college_code', college_code).execute()
+        
+        if not existing_college.data:
+            return jsonify({'error': 'College not found'}), 404
+        
+        if data['college_code'] != college_code:
+            duplicate_check = supabase_extension.client.from_('colleges').select('college_code').eq('college_code', data['college_code']).execute()
+            
+            if duplicate_check.data:
+                return jsonify({'error': 'College Code already exists. Please use a different Code.'}), 409
+        response = supabase_extension.client.from_('colleges').update(data).eq('college_code', college_code).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'College updated successfully',
+                'college': response.data[0]
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to update college'}), 500
+            
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+    
+@app.route('/colleges/<college_code>', methods=['DELETE'])
+def delete_college(college_code):
+    try:
+        existing_college = supabase_extension.client.from_('colleges').select('college_code').eq('college_code', college_code).execute()
+        
+        if not existing_college.data:
+            return jsonify({'error': 'College not found'}), 404
+        
+        response = supabase_extension.client.from_('colleges').delete().eq('college_code', college_code).execute()
+        
+        if response.data:
+            return jsonify({
+                'message': 'College deleted successfully',
+                'college_code': college_code
+            }), 200
+        else:
+            return jsonify({'error': 'Failed to delete college'}), 500
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+            
+
 if __name__ == "__main__":
     app.run(debug=True)
                     

@@ -21,7 +21,12 @@
         </thead>
         <tbody>
           <tr v-for="s in filteredData" :key="s.student_id">
-            <td v-for="col in columns" :key="col">{{ s[keyMap[col]] }}</td>
+            <td>{{ s.student_id }}</td>
+            <td>{{ s.first_name }}</td>
+            <td>{{ s.last_name }}</td>
+            <td>{{ s.year_level }}</td>
+            <td>{{ s.gender }}</td>
+            <td>{{ s.program_code || 'None' }}</td>
             <td><button class="btn btn-accent" @click="editStudent(s)">Edit</button></td>
             <td><button class="btn btn-error" @click="deleteStudent(s)">Delete</button></td>
           </tr>

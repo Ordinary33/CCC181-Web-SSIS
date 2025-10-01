@@ -7,6 +7,7 @@ export const useModalStore = defineStore('modal', () => {
 
   const currentStudent = ref(null)
   const currentProgram = ref(null)
+  const currentCollege = ref(null)
 
   function open(modalName) {
     activeModal.value = modalName
@@ -17,6 +18,7 @@ export const useModalStore = defineStore('modal', () => {
     isEditMode.value = false
     currentStudent.value = null
     currentProgram.value = null
+    currentCollege.value = null
   }
 
   function setEditMode(editMode) {
@@ -31,5 +33,9 @@ export const useModalStore = defineStore('modal', () => {
     currentProgram.value = program
   }
 
-  return { activeModal, isEditMode, currentStudent, currentProgram, open, close, setEditMode, setCurrentStudent, setCurrentProgram }
+  function setCurrentCollege(college) {
+    currentCollege.value = college
+  }
+
+  return { activeModal, isEditMode, currentStudent, currentProgram, currentCollege, open, close, setEditMode, setCurrentStudent, setCurrentProgram, setCurrentCollege }
 })

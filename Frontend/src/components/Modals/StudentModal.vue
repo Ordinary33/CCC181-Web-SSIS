@@ -145,10 +145,12 @@ const handleSubmit = async (e) => {
         resetForm()
         modal.close()
         
-        await studentsStore.refreshStudents()
+        
         
         const successMessage = wasEditMode ? 'Student updated successfully!' : 'Student added successfully!'
         alert(successMessage)
+
+        await studentsStore.refreshStudents()
         
       } else {
         throw new Error('Failed to save student')

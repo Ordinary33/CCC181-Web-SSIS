@@ -123,18 +123,20 @@ const handleSubmit = async (e) => {
         response = await axios.post('http://127.0.0.1:5000/programs', programData)
       }
       
-      if (response.status === 201 || response.status === 200) {
+      if (response.status === 200 || response.status === 201) {
         const wasEditMode = modal.isEditMode
         console.log('Program saved successfully:', response.data)
         
         resetForm()
         modal.close()
         
-        await programsStore.refreshPrograms()
-        await studentStore.refreshStudents()
+       
         
         const successMessage = wasEditMode ? 'Program updated successfully!' : 'Program added successfully!'
         alert(successMessage)
+
+        await programsStore.refreshPrograms()
+        await studentStore.refreshStudents()
         
       } else {
         throw new Error('Failed to save program')

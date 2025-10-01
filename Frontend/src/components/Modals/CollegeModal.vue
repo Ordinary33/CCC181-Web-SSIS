@@ -1,16 +1,39 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import axios from 'axios'
 import { useModalStore } from '@/stores/modals'
+import { useProgramsStore } from '@/stores/programs'
 import { useCollegesStore } from '@/stores/colleges'
 
 const modal = useModalStore()
 const collegesStore = useCollegesStore()
+const programStore = useProgramsStore()
+const originalCollege = ref('')
 
 const formData = reactive({
   college_code: '',
   college_name: ''
 })
+
+watch(() => modal.isEditMode, (isEdit) => {
+  if (isEdit && modal.currentCollege) {
+    formData.college_code = modal.currentCollege.college_code
+    formData.college_name = modal.currentCollege.college_name
+
+    originalCollege.value = modal.currentCollege.college_code
+  } else if (!isEdit) {
+    resetForm()
+    originalCollege.value = ''
+  }
+})
+
+watch(() => modal.currentCollege, (college) => {
+  if (college && modal.isEditMode) {
+    formData.college_code = college.college_code
+    formData.college_name = college.college_name
+  }
+})
+
 
 const errors = reactive({
   college_code: '',
@@ -76,19 +99,29 @@ const handleSubmit = async (e) => {
         college_code: formData.college_code,
         college_name: formData.college_name.trim()
       }
+
+      let response
       
-      const response = await axios.post('http://127.0.0.1:5000/colleges', collegeData)
+      if (modal.isEditMode) {
+        response = await axios.put(`http://127.0.0.1:5000/colleges/${originalCollege.value}`, collegeData)
+      } else {
+        response = await axios.post('http://127.0.0.1:5000/colleges', collegeData)
+      }
       
-      if (response.status === 201) {
+      if (response.status === 200 || response.status === 201) {
+        const wasEditMode = modal.isEditMode
         console.log('College saved successfully:', response.data)
         
         resetForm()
         modal.close()
         
+
+        
+        const successMessage = wasEditMode ? 'College updated successfully!' : 'College added successfully!'
+        alert(successMessage)
+        
         await collegesStore.refreshColleges()
-        
-        alert('College added successfully!')
-        
+        await programStore.refreshPrograms()
       } else {
         throw new Error('Failed to save college')
       }
