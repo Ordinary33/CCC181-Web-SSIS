@@ -11,7 +11,7 @@ export const useCollegesStore = defineStore('colleges', {
       if (this.colleges.length > 0) return
       this.loading = true
       try {
-        const res = await axios.get('http://127.0.0.1:5000/colleges')
+        const res = await axios.get('http://127.0.0.1:5000/colleges/')
         this.colleges = res.data
       } finally {
         this.loading = false
@@ -20,7 +20,7 @@ export const useCollegesStore = defineStore('colleges', {
     async refreshColleges() {
       this.loading = true
       try {
-        const res = await axios.get('http://127.0.0.1:5000/colleges')
+        const res = await axios.get('http://127.0.0.1:5000/colleges/')
         this.colleges = res.data
       } finally {
         this.loading = false
@@ -29,7 +29,7 @@ export const useCollegesStore = defineStore('colleges', {
     async deleteCollege(collegeCode) {
       this.loading = true
       try {
-        const res = await axios.delete(`http://127.0.0.1:5000/colleges/${collegeCode}`)
+        const res = await axios.delete(`http://127.0.0.1:5000/colleges/${collegeCode}/`)
 
         if (res.status === 200) {
           this.colleges = this.colleges.filter(c => c.college_code !== collegeCode)

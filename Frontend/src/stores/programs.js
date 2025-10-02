@@ -11,7 +11,7 @@ export const useProgramsStore = defineStore('programs', {
       if (this.programs.length > 0) return
       this.loading = true
       try {
-        const res = await axios.get('http://127.0.0.1:5000/programs')
+        const res = await axios.get('http://127.0.0.1:5000/programs/')
         this.programs = res.data
       } finally {
         this.loading = false
@@ -20,7 +20,7 @@ export const useProgramsStore = defineStore('programs', {
     async refreshPrograms() {
       this.loading = true
       try {
-        const res = await axios.get('http://127.0.0.1:5000/programs')
+        const res = await axios.get('http://127.0.0.1:5000/programs/')
         this.programs = res.data
       } finally {
         this.loading = false
@@ -29,7 +29,7 @@ export const useProgramsStore = defineStore('programs', {
     async deleteProgram(programCode) {
       this.loading = true
       try {
-        const res = await axios.delete(`http://127.0.0.1:5000/programs/${programCode}`)
+        const res = await axios.delete(`http://127.0.0.1:5000/programs/${programCode}/`)
 
         if (res.status === 200) {
           this.programs = this.programs.filter(p => p.program_code !== programCode)

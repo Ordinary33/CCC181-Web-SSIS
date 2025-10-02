@@ -9,6 +9,7 @@ flask-cors = "*"
 supabase = "*"
 flask-supabase = "*"
 python-dotenv = "*"
+psycopg = {extras = ["pool"], version = "*"}
 
 [dev-packages]
 pytest = "*"
