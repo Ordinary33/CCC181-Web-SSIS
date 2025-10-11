@@ -35,7 +35,6 @@
       </tbody>
     </table>
 
-
     <div class="flex justify-center items-center gap-4 mt-3">
       <button class="btn btn-success" :disabled="page === 1" @click="page--">Prev</button>
       <span>Page {{ page }} of {{ totalPages }}</span>
@@ -48,13 +47,17 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useProgramsStore } from '@/stores/programs'
 import { useCollegesStore } from '@/stores/colleges'
 import { useModalStore } from '@/stores/modals'
+import { useToastStore } from '@/stores/toasts'
 import Searchbar from './Searchbar.vue'
 import CollegeModal from './Modals/CollegeModal.vue'
 
 const store = useCollegesStore()
+const programsStore = useProgramsStore()
 const modal = useModalStore()
+const toastStore = useToastStore()
 
 const query = ref('')
 const filterBy = ref('All')
@@ -72,17 +75,17 @@ const editCollege = (college) => {
 }
 
 const deleteCollege = async (college) => {
-  if (confirm(`Are you sure you want to delete college ${college.college_code}?`)) {
-    try {
-      const result = await store.deleteCollege(college.college_code)
-      if (result.success) {
-        alert(result.message)
-        await store.refreshColleges()
-      }
-    } catch (error) {
-      console.error('Error deleting college:', error)
-      alert(`Error: ${error.message}`)
-    }
+  if (!confirm(`Are you sure you want to delete college ${college.college_code}?`)) return
+
+  try {
+    const result = await store.deleteCollege(college.college_code)
+      toastStore.showToast(result.message, 'success')
+      await store.refreshColleges()
+      await programsStore.refreshPrograms()
+
+  } catch (error) {
+    console.error('Error deleting college:', error)
+    toastStore.showToast(error.message || 'Failed to delete college', 'error')
   }
 }
 

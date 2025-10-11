@@ -1,13 +1,16 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
-import axios from 'axios'
+import { ref, reactive, watch } from 'vue'
 import { useModalStore } from '@/stores/modals'
-import { useProgramsStore } from '@/stores/programs'
 import { useCollegesStore } from '@/stores/colleges'
+import { useProgramsStore } from '@/stores/programs'
+import { useToastStore } from '@/stores/toasts'
+import axios from 'axios'
 
 const modal = useModalStore()
 const collegesStore = useCollegesStore()
 const programStore = useProgramsStore()
+const toastStore = useToastStore()
+
 const originalCollege = ref('')
 
 const formData = reactive({
@@ -15,13 +18,20 @@ const formData = reactive({
   college_name: ''
 })
 
+const errors = reactive({
+  college_code: '',
+  college_name: ''
+})
+
+const saving = ref(false)
+const buttonLabel = ref('Save')
+
 watch(() => modal.isEditMode, (isEdit) => {
   if (isEdit && modal.currentCollege) {
     formData.college_code = modal.currentCollege.college_code
     formData.college_name = modal.currentCollege.college_name
-
     originalCollege.value = modal.currentCollege.college_code
-  } else if (!isEdit) {
+  } else {
     resetForm()
     originalCollege.value = ''
   }
@@ -34,127 +44,74 @@ watch(() => modal.currentCollege, (college) => {
   }
 })
 
-
-const errors = reactive({
-  college_code: '',
-  college_name: ''
-})
-
 const validateForm = () => {
-  Object.keys(errors).forEach(key => {
-    errors[key] = ''
-  })
-
+  Object.keys(errors).forEach(key => errors[key] = '')
   let isValid = true
 
   if (!formData.college_code.trim()) {
     errors.college_code = 'College Code is required'
     isValid = false
-  } else {
-    const collegeCodeRegex = /^[A-Za-z]{2,}$/
-    if (!collegeCodeRegex.test(formData.college_code)) {
-      errors.college_code = 'College Code must be in format CC (e.g., CC)'
-      isValid = false
-    }
+  } else if (!/^[A-Za-z]{2,}$/.test(formData.college_code)) {
+    errors.college_code = 'College Code must be letters only (e.g., CC)'
+    isValid = false
   }
 
   if (!formData.college_name.trim()) {
     errors.college_name = 'College Name is required'
     isValid = false
-  } else {
-    const nameRegex = /^[a-zA-Z\s]+$/
-    if (!nameRegex.test(formData.college_name)) {
-      errors.college_name = 'College Name can only contain letters and spaces'
-      isValid = false
-    }
+  } else if (!/^[a-zA-Z\s]+$/.test(formData.college_name)) {
+    errors.college_name = 'College Name can only contain letters and spaces'
+    isValid = false
   }
+
   return isValid
 }
 
 const formatCollegeCode = (event) => {
-  let value = event.target.value.toUpperCase()
-  value = value.replace(/[^A-Z]/g, '')
-  formData.college_code = value
+  formData.college_code = event.target.value.toUpperCase().replace(/[^A-Z]/g, '')
 }
 
 const resetForm = () => {
-  formData.college_code = ''
-  formData.college_name = ''
-  Object.keys(errors).forEach(key => {
-    errors[key] = ''
-  })
+  Object.keys(formData).forEach(key => formData[key] = '')
+  Object.keys(errors).forEach(key => errors[key] = '')
 }
 
-const handleSubmit = async (e) => {
-  e.preventDefault()
-  
-  if (validateForm()) {
-    try {
-      const saveButton = e.target.querySelector('.btn-save')
-      const originalText = saveButton.textContent
-      saveButton.textContent = 'Saving...'
-      saveButton.disabled = true
-      
-      const collegeData = {
-        college_code: formData.college_code,
-        college_name: formData.college_name.trim()
-      }
+const handleSubmit = async () => {
+  if (!validateForm()) return
+  saving.value = true
+  buttonLabel.value = modal.isEditMode ? 'Updating...' : 'Saving...'
 
-      let response
-      
-      if (modal.isEditMode) {
-        response = await axios.put(`http://127.0.0.1:5000/colleges/${originalCollege.value}`, collegeData)
-      } else {
-        response = await axios.post('http://127.0.0.1:5000/colleges', collegeData)
-      }
-      
-      if (response.status === 200 || response.status === 201) {
-        const wasEditMode = modal.isEditMode
-        console.log('College saved successfully:', response.data)
-        
-        resetForm()
-        modal.close()
-        
-
-        
-        const successMessage = wasEditMode ? 'College updated successfully!' : 'College added successfully!'
-        alert(successMessage)
-        
-        await collegesStore.refreshColleges()
-        await programStore.refreshPrograms()
-      } else {
-        throw new Error('Failed to save college')
-      }
-      
-    } catch (error) {
-      console.error('Error saving college:', error)
-      
-      if (error.response) {
-        const status = error.response.status
-        const errorData = error.response.data
-        
-        if (status === 409) {
-          alert(`Error: ${errorData.error}`)
-        } else if (status === 400) {
-          alert(`Error: ${errorData.error}`)
-        } else if (status === 500) {
-          alert(`Server Error: ${errorData.error || 'Failed to save college'}`)
-        } else {
-          alert(`Error (${status}): ${errorData.error || errorData.message || 'Unknown error'}`)
-        }
-      } else if (error.request) {
-        alert('Network Error: Unable to connect to server. Please check your connection.')
-      } else {
-        alert('Error saving college. Please try again.')
-      }
-      
-    } finally {
-      const saveButton = e.target.querySelector('.btn-save')
-      saveButton.textContent = 'Save'
-      saveButton.disabled = false
+  try {
+    const collegeData = {
+      college_code: formData.college_code,
+      college_name: formData.college_name.trim()
     }
-  } else {
-    console.log('Form has validation errors')
+
+    if (modal.isEditMode) {
+      await axios.put(`http://127.0.0.1:5000/colleges/${originalCollege.value}`, collegeData)
+    } else {
+      await axios.post('http://127.0.0.1:5000/colleges', collegeData)
+    }
+
+    const wasEditMode = modal.isEditMode
+    resetForm()
+    modal.close()
+    toastStore.showToast(wasEditMode ? 'College updated successfully!' : 'College added successfully!', 'success')
+
+    await collegesStore.refreshColleges()
+    await programStore.refreshPrograms()
+  } catch (error) {
+    console.error('Error saving college:', error)
+    if (error.response && error.response.data) {
+      toastStore.showToast(error.response.data.error || error.response.data.message || 'Failed to save college', 'error')
+    } else if (error.message) {
+      toastStore.showToast(error.message, 'error')
+    } else {
+      toastStore.showToast('Error saving college. Please try again.', 'error')
+    }
+  } finally {
+    saving.value = false
+    buttonLabel.value = 'Save'
   }
 }
 </script>
@@ -162,8 +119,8 @@ const handleSubmit = async (e) => {
 <template>
   <div v-if="modal.activeModal === 'collegeForm'" class="modal-overlay">
     <div class="modal-content">
-      <h1 class="modal-title">Add College</h1>
-      <form @submit="handleSubmit">
+      <h1 class="modal-title">{{ modal.isEditMode ? 'Edit College' : 'Add College' }}</h1>
+      <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label>College Code:</label>
           <input 
@@ -173,6 +130,7 @@ const handleSubmit = async (e) => {
             placeholder="CCS"
             maxlength="20"
             :class="{ 'error': errors.college_code }"
+            :style="modal.isEditMode ? 'background-color: #f5f5f5;' : ''"
           />
           <span v-if="errors.college_code" class="error-message">{{ errors.college_code }}</span>
         </div>
@@ -188,7 +146,7 @@ const handleSubmit = async (e) => {
         </div>
         <div class="button-group">
           <button type="button" @click="modal.close(); resetForm()" class="btn btn-cancel">Cancel</button>
-          <button type="submit" class="btn btn-save">Save</button>
+          <button type="submit" class="btn btn-save" :disabled="saving">{{ buttonLabel }}</button>
         </div>
       </form>
     </div>
@@ -205,7 +163,6 @@ const handleSubmit = async (e) => {
   background: rgba(0, 0, 0, 0.5);
   z-index: 999;
 }
-
 .modal-content {
   position: fixed;
   top: 50%;
@@ -219,7 +176,6 @@ const handleSubmit = async (e) => {
   min-width: 400px;
   max-width: 500px;
 }
-
 .modal-title {
   margin-top: 0;
   text-align: center;
@@ -229,66 +185,15 @@ const handleSubmit = async (e) => {
   border-bottom: 2px solid #eee;
   padding-bottom: 10px;
 }
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group:last-of-type {
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 5px;
-  font-weight: bold;
-}
-
-input, select {
-  width: 100%;
-  padding: 8px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-}
-
-input.error, select.error {
-  border-color: #dc3545;
-  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
-}
-
-.error-message {
-  color: #dc3545;
-  font-size: 12px;
-  margin-top: 4px;
-  display: block;
-}
-
-.button-group {
-  display: flex;
-  gap: 10px;
-  justify-content: flex-end;
-}
-
-.btn {
-  padding: 10px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.btn-cancel {
-  background: #6c757d;
-  color: white;
-}
-
-.btn-save {
-  background: #28a745;
-  color: white;
-}
-
-.btn-save:disabled {
-  background: #6c757d;
-  cursor: not-allowed;
-  opacity: 0.6;
-}
+.form-group { margin-bottom: 15px; }
+.form-group:last-of-type { margin-bottom: 20px; }
+label { display: block; margin-bottom: 5px; font-weight: bold; }
+input, select { width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; }
+input.error, select.error { border-color: #dc3545; box-shadow:0 0 0 0.2rem rgba(220,53,69,0.25); }
+.error-message { color:#dc3545; font-size:12px; margin-top:4px; display:block; }
+.button-group { display:flex; gap:10px; justify-content:flex-end; }
+.btn { padding:10px 20px; border:none; border-radius:4px; cursor:pointer; }
+.btn-cancel { background:#6c757d; color:white; }
+.btn-save { background:#28a745; color:white; }
+.btn-save:disabled { background:#6c757d; cursor:not-allowed; opacity:0.6; }
 </style>

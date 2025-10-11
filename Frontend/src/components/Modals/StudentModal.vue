@@ -1,12 +1,14 @@
 <script setup>
-import { onMounted, reactive, watch } from 'vue'
+import { onMounted, reactive, watch, ref, computed } from 'vue'
 import { useModalStore } from '@/stores/modals'
 import { useProgramsStore } from '@/stores/programs'
 import { useStudentsStore } from '@/stores/students'
+import { useToastStore } from '@/stores/toasts'
 
 const modal = useModalStore()
 const programsStore = useProgramsStore()
 const studentsStore = useStudentsStore()
+const toastStore = useToastStore()
 
 const formData = reactive({
   student_id: '',
@@ -26,27 +28,36 @@ const errors = reactive({
   program_code: ''
 })
 
-watch(() => modal.isEditMode, (isEdit) => {
-  if (isEdit && modal.currentStudent) {
-    Object.assign(formData, modal.currentStudent)
-  } else if (!isEdit) {
-    resetForm()
-  }
-})
+const saving = ref(false)
+const buttonLabel = computed(() => (saving.value ? (modal.isEditMode ? 'Updating...' : 'Saving...') : (modal.isEditMode ? 'Update' : 'Save')))
 
-watch(() => modal.currentStudent, (student) => {
-  if (student && modal.isEditMode) Object.assign(formData, student)
-})
+watch(
+  () => modal.isEditMode,
+  (isEdit) => {
+    if (isEdit && modal.currentStudent) {
+      Object.assign(formData, modal.currentStudent)
+    } else if (!isEdit) {
+      resetForm()
+    }
+  }
+)
+
+watch(
+  () => modal.currentStudent,
+  (student) => {
+    if (student && modal.isEditMode) Object.assign(formData, student)
+  }
+)
 
 onMounted(() => {
   programsStore.fetchPrograms()
 })
 
 const validateForm = () => {
-  Object.keys(errors).forEach(key => errors[key] = '')
+  Object.keys(errors).forEach(key => (errors[key] = ''))
   let isValid = true
 
-  if (!formData.student_id.trim()) {
+  if (!formData.student_id || !formData.student_id.toString().trim()) {
     errors.student_id = 'Student ID is required'
     isValid = false
   } else if (!/^\d{4}-\d{4}$/.test(formData.student_id)) {
@@ -54,7 +65,7 @@ const validateForm = () => {
     isValid = false
   }
 
-  if (!formData.first_name.trim()) {
+  if (!formData.first_name || !formData.first_name.toString().trim()) {
     errors.first_name = 'First Name is required'
     isValid = false
   } else if (!/^[a-zA-Z\s]+$/.test(formData.first_name)) {
@@ -62,7 +73,7 @@ const validateForm = () => {
     isValid = false
   }
 
-  if (!formData.last_name.trim()) {
+  if (!formData.last_name || !formData.last_name.toString().trim()) {
     errors.last_name = 'Last Name is required'
     isValid = false
   } else if (!/^[a-zA-Z\s]+$/.test(formData.last_name)) {
@@ -88,13 +99,10 @@ const validateForm = () => {
   return isValid
 }
 
-const handleSubmit = async (e) => {
-  e.preventDefault()
+const handleSubmit = async () => {
   if (!validateForm()) return
 
-  const saveButton = e.target.querySelector('.btn-save')
-  saveButton.textContent = 'Saving...'
-  saveButton.disabled = true
+  saving.value = true
 
   try {
     const studentData = {
@@ -106,114 +114,118 @@ const handleSubmit = async (e) => {
       program_code: formData.program_code
     }
 
-    let response
     if (modal.isEditMode) {
-      response = await studentsStore.updateStudent(formData.student_id, studentData)
+      await studentsStore.updateStudent(formData.student_id, studentData)
     } else {
-      response = await studentsStore.createStudent(studentData)
+      await studentsStore.createStudent(studentData)
     }
 
     await studentsStore.refreshStudents()
-    
+
     const wasEditMode = modal.isEditMode
     resetForm()
     modal.close()
-    alert(wasEditMode ? 'Student updated successfully!' : 'Student added successfully!')
-
+    toastStore.showToast(wasEditMode ? 'Student updated successfully!' : 'Student added successfully!', 'success')
   } catch (error) {
     console.error('Error saving student:', error)
-    if (error.response) {
-      const status = error.response.status
-      const errorData = error.response.data
-      alert(errorData.error || errorData.message || `Error (${status})`)
-    } else if (error.request) {
-      alert('Network Error: Unable to connect to server.')
+    if (error && error.response && error.response.data) {
+      const data = error.response.data
+      toastStore.showToast(data.error || data.message || `Error (${error.response.status})`, 'error')
+    } else if (error && error.message) {
+      toastStore.showToast(error.message, 'error')
     } else {
-      alert('Error saving student. Please try again.')
+      toastStore.showToast('Error saving student. Please try again.', 'error')
     }
   } finally {
-    saveButton.textContent = modal.isEditMode ? 'Update' : 'Save'
-    saveButton.disabled = false
+    saving.value = false
   }
 }
 
 const formatStudentId = (event) => {
-  let value = event.target.value.replace(/\D/g, '')
-  if (value.length > 4) value = value.substring(0,4) + '-' + value.substring(4,8)
+  let value = (event.target.value || '').toString().replace(/\D/g, '')
+  if (value.length > 4) value = value.substring(0, 4) + '-' + value.substring(4, 8)
   formData.student_id = value
 }
 
 const resetForm = () => {
-  Object.keys(formData).forEach(key => formData[key] = '')
-  Object.keys(errors).forEach(key => errors[key] = '')
+  Object.keys(formData).forEach(key => (formData[key] = ''))
+  Object.keys(errors).forEach(key => (errors[key] = ''))
 }
 </script>
 
 <template>
-  <div v-if="modal.activeModal === 'studentForm'" class="modal-overlay">
-    <div class="modal-content">
-      <h1 class="modal-title">{{ modal.isEditMode ? 'Edit Student' : 'Add Student' }}</h1>
-      <form @submit="handleSubmit">
-        <div class="form-group">
-          <label>Student ID:</label>
-          <input 
-            type="text" 
-            v-model="formData.student_id"
-            @input="formatStudentId"
-            placeholder="2024-0001"
-            maxlength="9"
-            :class="{ 'error': errors.student_id }"
-            :readonly="modal.isEditMode"
-            :style="modal.isEditMode ? 'background-color: #f5f5f5; cursor: not-allowed;' : ''"
-          />
-          <span v-if="errors.student_id" class="error-message">{{ errors.student_id }}</span>
-        </div>
-        <div class="form-group">
-          <label>First Name:</label>
-          <input type="text" v-model="formData.first_name" :class="{ 'error': errors.first_name }"/>
-          <span v-if="errors.first_name" class="error-message">{{ errors.first_name }}</span>
-        </div>
-        <div class="form-group">
-          <label>Last Name:</label>
-          <input type="text" v-model="formData.last_name" :class="{ 'error': errors.last_name }"/>
-          <span v-if="errors.last_name" class="error-message">{{ errors.last_name }}</span>
-        </div>
-        <div class="form-group">
-          <label>Year Level:</label>
-          <select v-model="formData.year_level" :class="{ 'error': errors.year_level }">
-            <option value="">Select year level...</option>
-            <option value="1">1st Year</option>
-            <option value="2">2nd Year</option>
-            <option value="3">3rd Year</option>
-            <option value="4">4th Year</option>
-          </select>
-          <span v-if="errors.year_level" class="error-message">{{ errors.year_level }}</span>
-        </div>
-        <div class="form-group">
-          <label>Gender:</label>
-          <select v-model="formData.gender" :class="{ 'error': errors.gender }">
-            <option value="">Select gender...</option>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-          </select>
-          <span v-if="errors.gender" class="error-message">{{ errors.gender }}</span>
-        </div>
-        <div class="form-group">
-          <label>Program:</label>
-          <select v-model="formData.program_code" :class="{ 'error': errors.program_code }">
-            <option value="">Select a program...</option>
-            <option v-for="program in programsStore.programs" :key="program.program_code" :value="program.program_code">
-              {{ program.program_code }} - {{ program.program_name }}
-            </option>
-          </select>
-          <span v-if="errors.program_code" class="error-message">{{ errors.program_code }}</span>
-        </div>
-        <div class="button-group">
-          <button type="button" @click="modal.close(); resetForm()" class="btn btn-cancel">Cancel</button>
-          <button type="submit" class="btn btn-save">{{ modal.isEditMode ? 'Update' : 'Save' }}</button>
-        </div>
-      </form>
+  <div>
+    <div v-if="modal.activeModal === 'studentForm'" class="modal-overlay">
+      <div class="modal-content">
+        <h1 class="modal-title">{{ modal.isEditMode ? 'Edit Student' : 'Add Student' }}</h1>
+        <form @submit.prevent="handleSubmit">
+          <div class="form-group">
+            <label>Student ID:</label>
+            <input
+              type="text"
+              v-model="formData.student_id"
+              @input="formatStudentId"
+              placeholder="2024-0001"
+              maxlength="9"
+              :class="{ 'error': errors.student_id }"
+              :readonly="modal.isEditMode"
+              :style="modal.isEditMode ? 'background-color: #f5f5f5; cursor: not-allowed;' : ''"
+            />
+            <span v-if="errors.student_id" class="error-message">{{ errors.student_id }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>First Name:</label>
+            <input type="text" v-model="formData.first_name" :class="{ 'error': errors.first_name }" />
+            <span v-if="errors.first_name" class="error-message">{{ errors.first_name }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Last Name:</label>
+            <input type="text" v-model="formData.last_name" :class="{ 'error': errors.last_name }" />
+            <span v-if="errors.last_name" class="error-message">{{ errors.last_name }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Year Level:</label>
+            <select v-model="formData.year_level" :class="{ 'error': errors.year_level }">
+              <option value="">Select year level...</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+            <span v-if="errors.year_level" class="error-message">{{ errors.year_level }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Gender:</label>
+            <select v-model="formData.gender" :class="{ 'error': errors.gender }">
+              <option value="">Select gender...</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
+            <span v-if="errors.gender" class="error-message">{{ errors.gender }}</span>
+          </div>
+
+          <div class="form-group">
+            <label>Program:</label>
+            <select v-model="formData.program_code" :class="{ 'error': errors.program_code }">
+              <option value="">Select a program...</option>
+              <option v-for="program in programsStore.programs" :key="program.program_code" :value="program.program_code">
+                {{ program.program_code }} - {{ program.program_name }}
+              </option>
+            </select>
+            <span v-if="errors.program_code" class="error-message">{{ errors.program_code }}</span>
+          </div>
+
+          <div class="button-group">
+            <button type="button" @click="modal.close(); resetForm()" class="btn btn-cancel">Cancel</button>
+            <button type="submit" class="btn btn-save" :disabled="saving">{{ buttonLabel }}</button>
+          </div>
+        </form>
+      </div>
     </div>
   </div>
 </template>

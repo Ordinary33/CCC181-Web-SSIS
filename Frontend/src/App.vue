@@ -2,6 +2,7 @@
 import { RouterView } from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import AddFAB from './components/AddFAB.vue'
+import ToastContainer from './components/ToastContainer.vue'
 import StudentModal from './components/Modals/StudentModal.vue'
 import ProgramModal from './components/Modals/ProgramModal.vue'
 import CollegeModal from './components/Modals/CollegeModal.vue'
@@ -20,10 +21,10 @@ if (auth.token) {
 <template>
   <div class="min-h-screen bg-[#A2D5AB] relative">
     <header>
+      <ToastContainer />
       <Navbar />
       <AddFAB v-if="auth.isLoggedIn" />
     </header>
-
     <RouterView v-if="auth.isLoggedIn" />
 
     <StudentModal v-if="auth.isLoggedIn" />

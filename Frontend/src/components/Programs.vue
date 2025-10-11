@@ -14,29 +14,28 @@
     </div>
 
     <table v-else class="table max-w-4xl mx-auto bg-[#E5EFC1]">
-        <thead>
-          <tr>
-            <th>Program Code</th>
-            <th>Program Name</th>
-            <th>College Code</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="p in paginatedPrograms" :key="p.program_code">
-            <td>{{ p.program_code }}</td>
-            <td>{{ p.program_name }}</td>
-            <td>{{ p.college_code || 'None' }}</td>
-            <td class="text-center">
-              <div class="flex justify-center gap-2">
-                <button class="btn btn-accent btn-sm" @click="editProgram(p)">Edit</button>
-                <button class="btn btn-error btn-sm" @click="deleteProgram(p)">Delete</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
+      <thead>
+        <tr>
+          <th>Program Code</th>
+          <th>Program Name</th>
+          <th>College Code</th>
+          <th class="text-center">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="p in paginatedPrograms" :key="p.program_code">
+          <td>{{ p.program_code }}</td>
+          <td>{{ p.program_name }}</td>
+          <td>{{ p.college_code || 'None' }}</td>
+          <td class="text-center">
+            <div class="flex justify-center gap-2">
+              <button class="btn btn-accent btn-sm" @click="editProgram(p)">Edit</button>
+              <button class="btn btn-error btn-sm" @click="deleteProgram(p)">Delete</button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
     </table>
-
 
     <div class="flex justify-center items-center gap-4 mt-3">
       <button class="btn btn-success" :disabled="page === 1" @click="page--">Prev</button>
@@ -51,12 +50,16 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import { useProgramsStore } from '@/stores/programs'
+import { useStudentsStore } from '@/stores/students'
 import { useModalStore } from '@/stores/modals'
+import { useToastStore } from '@/stores/toasts'
 import Searchbar from './Searchbar.vue'
 import ProgramModal from './Modals/ProgramModal.vue'
 
 const store = useProgramsStore()
+const studentsStore = useStudentsStore()
 const modal = useModalStore()
+const toastStore = useToastStore()
 
 const query = ref('')
 const filterBy = ref('All')
@@ -74,17 +77,16 @@ const editProgram = (program) => {
 }
 
 const deleteProgram = async (program) => {
-  if (confirm(`Are you sure you want to delete program ${program.program_code}?`)) {
-    try {
-      const result = await store.deleteProgram(program.program_code)
-      if (result.success) {
-        alert(result.message)
-        await store.refreshPrograms()
-      }
-    } catch (error) {
-      console.error('Error deleting program:', error)
-      alert(`Error: ${error.message}`)
-    }
+  if (!confirm(`Are you sure you want to delete program ${program.program_code}?`)) return
+
+  try {
+    await store.deleteProgram(program.program_code)
+    toastStore.showToast('Program deleted successfully!', 'success')
+    await store.refreshPrograms()
+    await studentsStore.refreshStudents()
+  } catch (error) {
+    console.error('Error deleting program:', error)
+    toastStore.showToast(error.message || 'Failed to delete program', 'error')
   }
 }
 

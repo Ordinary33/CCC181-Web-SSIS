@@ -1,15 +1,16 @@
 <script setup>
-import { ref, reactive, onMounted, watch } from 'vue'
+import { ref, reactive, onMounted, watch, computed } from 'vue'
 import { useModalStore } from '@/stores/modals'
 import { useProgramsStore } from '@/stores/programs'
 import { useCollegesStore } from '@/stores/colleges'
 import { useStudentsStore } from '@/stores/students'
+import { useToastStore } from '@/stores/toasts'
 
 const modal = useModalStore()
 const programsStore = useProgramsStore()
 const collegesStore = useCollegesStore()
-const studentStore = useStudentsStore()
-const originalProgram = ref('')
+const studentsStore = useStudentsStore()
+const toastStore = useToastStore()
 
 const formData = reactive({
   program_code: '',
@@ -23,11 +24,14 @@ const errors = reactive({
   college_code: ''
 })
 
+const saving = ref(false)
+const buttonLabel = computed(() => saving.value ? (modal.isEditMode ? 'Updating...' : 'Saving...') : (modal.isEditMode ? 'Update' : 'Save'))
+
+const originalProgram = ref('')
+
 watch(() => modal.isEditMode, (isEdit) => {
   if (isEdit && modal.currentProgram) {
-    formData.program_code = modal.currentProgram.program_code
-    formData.program_name = modal.currentProgram.program_name
-    formData.college_code = modal.currentProgram.college_code
+    Object.assign(formData, modal.currentProgram)
     originalProgram.value = modal.currentProgram.program_code
   } else {
     resetForm()
@@ -36,11 +40,7 @@ watch(() => modal.isEditMode, (isEdit) => {
 })
 
 watch(() => modal.currentProgram, (program) => {
-  if (program && modal.isEditMode) {
-    formData.program_code = program.program_code
-    formData.program_name = program.program_name
-    formData.college_code = program.college_code
-  }
+  if (program && modal.isEditMode) Object.assign(formData, program)
 })
 
 onMounted(() => {
@@ -76,9 +76,7 @@ const validateForm = () => {
 }
 
 const resetForm = () => {
-  formData.program_code = ''
-  formData.program_name = ''
-  formData.college_code = ''
+  Object.keys(formData).forEach(key => formData[key] = '')
   Object.keys(errors).forEach(key => errors[key] = '')
 }
 
@@ -86,13 +84,10 @@ const formatProgramCode = (e) => {
   formData.program_code = e.target.value.toUpperCase().replace(/[^A-Z]/g, '')
 }
 
-const handleSubmit = async (e) => {
-  e.preventDefault()
+const handleSubmit = async () => {
   if (!validateForm()) return
 
-  const saveButton = e.target.querySelector('.btn-save')
-  saveButton.textContent = 'Saving...'
-  saveButton.disabled = true
+  saving.value = true
 
   const programData = {
     program_code: formData.program_code,
@@ -101,26 +96,28 @@ const handleSubmit = async (e) => {
   }
 
   try {
-    let response
     if (modal.isEditMode) {
-      response = await programsStore.updateProgram(originalProgram.value, programData)
+      await programsStore.updateProgram(originalProgram.value, programData)
     } else {
-      response = await programsStore.createProgram(programData)
+      await programsStore.createProgram(programData)
     }
 
     const wasEditMode = modal.isEditMode
     resetForm()
     modal.close()
-    alert(wasEditMode ? 'Program updated successfully!' : 'Program added successfully!')
+
+    toastStore.showToast(
+      wasEditMode ? 'Program updated successfully!' : 'Program added successfully!',
+      'success'
+    )
 
     await programsStore.refreshPrograms()
-    await studentStore.refreshStudents()
+    await studentsStore.refreshStudents()
   } catch (error) {
     console.error('Error saving program:', error)
-    alert(error.message || 'Failed to save program')
+    toastStore.showToast(error.message || 'Failed to save program', 'error')
   } finally {
-    saveButton.textContent = 'Save'
-    saveButton.disabled = false
+    saving.value = false
   }
 }
 </script>
@@ -129,7 +126,7 @@ const handleSubmit = async (e) => {
   <div v-if="modal.activeModal === 'programForm'" class="modal-overlay">
     <div class="modal-content">
       <h1 class="modal-title">{{ modal.isEditMode ? 'Edit Program' : 'Add Program' }}</h1>
-      <form @submit="handleSubmit">
+      <form @submit.prevent="handleSubmit">
         <div class="form-group">
           <label>Program Code:</label>
           <input type="text" v-model="formData.program_code" @input="formatProgramCode"
@@ -138,12 +135,14 @@ const handleSubmit = async (e) => {
                  :style="modal.isEditMode ? 'background-color: #f5f5f5;' : ''"/>
           <span v-if="errors.program_code" class="error-message">{{ errors.program_code }}</span>
         </div>
+
         <div class="form-group">
           <label>Program Name:</label>
           <input type="text" v-model="formData.program_name" placeholder="Bachelor of Science"
                  :class="{ 'error': errors.program_name }"/>
           <span v-if="errors.program_name" class="error-message">{{ errors.program_name }}</span>
         </div>
+
         <div class="form-group">
           <label>College:</label>
           <select v-model="formData.college_code" :class="{ 'error': errors.college_code }">
@@ -154,9 +153,10 @@ const handleSubmit = async (e) => {
           </select>
           <span v-if="errors.college_code" class="error-message">{{ errors.college_code }}</span>
         </div>
+
         <div class="button-group">
           <button type="button" @click="modal.close(); resetForm()" class="btn btn-cancel">Cancel</button>
-          <button type="submit" class="btn btn-save">{{ modal.isEditMode ? 'Update' : 'Save' }}</button>
+          <button type="submit" class="btn btn-save" :disabled="saving">{{ buttonLabel }}</button>
         </div>
       </form>
     </div>
@@ -164,8 +164,8 @@ const handleSubmit = async (e) => {
 </template>
 
 <style scoped>
-.modal-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.5); z-index: 999; }
-.modal-content { position: fixed; top:50%; left:50%; transform: translate(-50%, -50%); background:white; padding:30px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.3); min-width:400px; max-width:500px; }
+.modal-overlay { position: fixed; top:0; left:0; width:100vw; height:100vh; background: rgba(0,0,0,0.5); z-index: 999; }
+.modal-content { position: fixed; top:50%; left:50%; transform: translate(-50%,-50%); background:white; padding:30px; border-radius:8px; box-shadow:0 4px 20px rgba(0,0,0,0.3); min-width:400px; max-width:500px; }
 .modal-title { text-align:center; font-weight:bold; font-size:24px; border-bottom:2px solid #eee; padding-bottom:10px; }
 .form-group { margin-bottom:15px; }
 label { display:block; margin-bottom:5px; font-weight:bold; }
