@@ -24,24 +24,25 @@
       </ul>
     </div>
     <div class="navbar-end">
-      <div class="dropdown dropdown-end">
-        <label tabindex="0" class="btn btn-ghost btn-circle avatar">
-          <div class="w-10 rounded-full bg-white text-[#39AEA9] flex items-center justify-center font-bold">U</div>
-        </label>
-        <ul tabindex="0" class="menu dropdown-content bg-white text-black shadow-md rounded-box w-52 mt-2 p-2">
-          <li>
-            <button @click="logout" class="justify-between">Logout</button>
-          </li>
-        </ul>
-      </div>
+        <div class="dropdown dropdown-end">
+          <label tabindex="0" class="btn btn-ghost btn-circle avatar">
+            <div class="w-10 rounded-full bg-white text-[#39AEA9] flex items-center justify-center font-bold"><img :src="UserIcon" alt="User" class="w-6 h-6"></div>
+          </label>
+          <ul tabindex="0" class="menu dropdown-content bg-white text-black shadow-md rounded-box w-52 mt-2 p-2">
+            <li>
+              <button @click="logout" class="justify-between">Logout</button>
+            </li>
+          </ul>
+          </div>
+        </div>
     </div>
-  </div>
 </template>
 
 <script setup>
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
+import UserIcon from '@/components/icons/user.svg'
 
 const authStore = useAuthStore()
 const router = useRouter()

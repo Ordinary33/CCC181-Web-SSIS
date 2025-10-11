@@ -12,26 +12,37 @@
     <div v-if="store.loading" class="flex justify-center items-center h-64">
       <span class="loading loading-spinner loading-lg text-info"></span>
     </div>
+
     <table v-else class="table max-w-4xl mx-auto bg-[#E5EFC1]">
-      <thead>
-        <tr>
-          <th>Program Code</th>
-          <th>Program Name</th>
-          <th>College Code</th>
-          <th>Edit</th>
-          <th>Delete</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr v-for="p in filteredPrograms" :key="p.program_code">
-          <td>{{ p.program_code }}</td>
-          <td>{{ p.program_name }}</td>
-          <td>{{ p.college_code || 'None' }}</td>
-          <td><button class="btn btn-accent" @click="editProgram(p)">Edit</button></td>
-          <td><button class="btn btn-error" @click="deleteProgram(p)">Delete</button></td>
-        </tr>
-      </tbody>
+        <thead>
+          <tr>
+            <th>Program Code</th>
+            <th>Program Name</th>
+            <th>College Code</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="p in paginatedPrograms" :key="p.program_code">
+            <td>{{ p.program_code }}</td>
+            <td>{{ p.program_name }}</td>
+            <td>{{ p.college_code || 'None' }}</td>
+            <td class="text-center">
+              <div class="flex justify-center gap-2">
+                <button class="btn btn-accent btn-sm" @click="editProgram(p)">Edit</button>
+                <button class="btn btn-error btn-sm" @click="deleteProgram(p)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
     </table>
+
+
+    <div class="flex justify-center items-center gap-4 mt-3">
+      <button class="btn btn-success" :disabled="page === 1" @click="page--">Prev</button>
+      <span>Page {{ page }} of {{ totalPages }}</span>
+      <button class="btn btn-success" :disabled="page === totalPages" @click="page++">Next</button>
+    </div>
   </div>
 
   <ProgramModal />
@@ -51,6 +62,8 @@ const query = ref('')
 const filterBy = ref('All')
 const sortBy = ref('Program Code')
 const sortDesc = ref(false)
+const page = ref(1)
+const perPage = 11
 
 onMounted(() => store.fetchPrograms())
 
@@ -83,7 +96,6 @@ const filteredPrograms = computed(() => {
       case 'Program Code': return p.program_code.toLowerCase().includes(q)
       case 'Program Name': return p.program_name.toLowerCase().includes(q)
       case 'College Code': return (p.college_code || '').toLowerCase().includes(q)
-      case 'All':
       default:
         return (
           p.program_code.toLowerCase().includes(q) ||
@@ -106,5 +118,11 @@ const filteredPrograms = computed(() => {
   }
 
   return result
+})
+
+const totalPages = computed(() => Math.ceil(filteredPrograms.value.length / perPage))
+const paginatedPrograms = computed(() => {
+  const start = (page.value - 1) * perPage
+  return filteredPrograms.value.slice(start, start + perPage)
 })
 </script>
