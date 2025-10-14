@@ -1,6 +1,5 @@
 <template>
   <div>
-    <
     <Searchbar
       v-model:query="query"
       v-model:filter="filterBy"
