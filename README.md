@@ -2,34 +2,43 @@
 
 # How to setup Backend:
 
-# Navigate to the backend directory
-cd backend
+ Navigate to the backend directory:
+ 
+    cd backend
 
-# Install dependencies using Pipenv
-pipenv install
+Install dependencies using Pipenv:
 
-# Activate the virtual environment
-pipenv shell
+    pipenv install
 
-# Create and configure your environment variables
-# Copy the example file to a new .env file
-cp .env.example .env
+Activate the virtual environment:
 
-# Now, open the .env file and add your configuration (e.g., database URI, secret key).
+    pipenv shell
 
-# Run the development server
-flask run
+Create and configure your environment variables
+
+Copy the example file to a new .env file:
+
+    cp .env.example .env
+
+Now, open the .env file and add your configuration (e.g., database URI, secret key).
+
+Run the development server:
+
+    flask run
 
 # How to setup Frontend Frontend:
 
-# Navigate to the frontend directory
-cd frontend
+Navigate to the frontend directory:
 
-# Install dependencies using npm
-npm install
+    cd frontend
 
-# Start the frontend development server
-npm run dev
+Install dependencies using npm:
+
+    npm install
+
+Start the frontend development server:
+
+    npm run dev
 
 
 
