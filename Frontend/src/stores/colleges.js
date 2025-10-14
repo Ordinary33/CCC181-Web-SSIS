@@ -1,82 +1,90 @@
 import { defineStore } from 'pinia'
 import axios from 'axios'
+import { useAuthStore } from './auth'
 
 export const useCollegesStore = defineStore('colleges', {
   state: () => ({
     colleges: [],
     loading: false
   }),
+
+  getters: {
+    auth: () => useAuthStore()
+  },
+
   actions: {
     async fetchColleges() {
       if (this.colleges.length > 0) return
       this.loading = true
       try {
-        const res = await axios.get('http://127.0.0.1:5000/colleges/')
+        const res = await axios.get('/colleges', this.getAuthConfig())
         this.colleges = res.data
+      } catch (e) {
+        console.error('Fetch colleges error:', e.response || e)
       } finally {
         this.loading = false
       }
     },
+
     async refreshColleges() {
       this.loading = true
       try {
-        const res = await axios.get('http://127.0.0.1:5000/colleges/')
+        const res = await axios.get('/colleges', this.getAuthConfig())
         this.colleges = res.data
+      } catch (e) {
+        console.error('Refresh colleges error:', e.response || e)
       } finally {
         this.loading = false
       }
     },
+
     async createCollege(collegeData) {
       this.loading = true
       try {
-        const res = await axios.post('http://127.0.0.1:5000/colleges/', collegeData)
-        if (res.status === 201) {
-          this.colleges.push(res.data.college)
-          return res.data
-        } else {
-          throw new Error('Failed to add college')
-        }
-      } catch (error) {
-        if (error.response) throw new Error(error.response.data.error || 'Failed to add college')
-        else throw error
+        const res = await axios.post('/colleges', collegeData, this.getAuthConfig())
+        this.colleges.push(res.data.college)
+        return res
+      } catch (e) {
+        console.error('Create college error:', e.response || e)
+        throw e
       } finally {
         this.loading = false
       }
     },
-    async updateCollege(originalCode, collegeData) {
+
+    async updateCollege(originalCode, updatedData) {
       this.loading = true
       try {
-        const res = await axios.put(`http://127.0.0.1:5000/colleges/${originalCode}`, collegeData)
-        if (res.status === 200) {
-          const idx = this.colleges.findIndex(c => c.college_code === originalCode)
-          if (idx !== -1) this.colleges[idx] = res.data.college
-          return res.data
-        } else {
-          throw new Error('Failed to update college')
-        }
-      } catch (error) {
-        if (error.response) throw new Error(error.response.data.error || 'Failed to update college')
-        else throw error
+        const res = await axios.put(`/colleges/${originalCode}`, updatedData, this.getAuthConfig())
+        const index = this.colleges.findIndex(c => c.college_code === originalCode)
+        if (index !== -1) this.colleges[index] = res.data.college
+        return res
+      } catch (e) {
+        console.error('Update college error:', e.response || e)
+        throw e
       } finally {
         this.loading = false
       }
     },
+
     async deleteCollege(collegeCode) {
       this.loading = true
       try {
-        const res = await axios.delete(`http://127.0.0.1:5000/colleges/${collegeCode}`)
-        if (res.status === 200) {
-          this.colleges = this.colleges.filter(c => c.college_code !== collegeCode)
-          return res.data
-        } else {
-          throw new Error('Failed to delete college')
-        }
-      } catch (error) {
-        if (error.response) throw new Error(error.response.data.error || 'Failed to delete college')
-        else throw error
+        const res = await axios.delete(`/colleges/${collegeCode}`, this.getAuthConfig())
+        this.colleges = this.colleges.filter(c => c.college_code !== collegeCode)
+        return res
+      } catch (e) {
+        console.error('Delete college error:', e.response || e)
+        throw e
       } finally {
         this.loading = false
       }
+    },
+
+    getAuthConfig() {
+      return this.auth.token
+        ? { headers: { Authorization: `Bearer ${this.auth.token}` } }
+        : {}
     }
   }
 })
