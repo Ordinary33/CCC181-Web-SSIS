@@ -2,31 +2,25 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useAuthStore } from './auth'
 
-const BASE_URL = 'http://127.0.0.1:5000/students/'
-
 export const useStudentsStore = defineStore('students', {
   state: () => ({
     students: [],
     loading: false
   }),
-  getters: {
-    auth() {
-      return useAuthStore()
-    }
-  },
-  actions: {
-    getAuthHeader() {
-      return this.auth.token ? { Authorization: `Bearer ${this.auth.token}` } : {}
-    },
 
+  getters: {
+    auth: () => useAuthStore()
+  },
+
+  actions: {
     async fetchStudents() {
       if (this.students.length > 0) return
       this.loading = true
       try {
-        const res = await axios.get(BASE_URL, { headers: this.getAuthHeader() })
+        const res = await axios.get('/students', this.getAuthConfig())
         this.students = res.data
-      } catch (error) {
-        console.error('Fetch students error:', parseError(error))
+      } catch (e) {
+        console.error('Fetch students error:', e.response || e)
       } finally {
         this.loading = false
       }
@@ -35,10 +29,10 @@ export const useStudentsStore = defineStore('students', {
     async refreshStudents() {
       this.loading = true
       try {
-        const res = await axios.get(BASE_URL, { headers: this.getAuthHeader() })
+        const res = await axios.get('/students', this.getAuthConfig())
         this.students = res.data
-      } catch (error) {
-        console.error('Refresh students error:', parseError(error))
+      } catch (e) {
+        console.error('Refresh students error:', e.response || e)
       } finally {
         this.loading = false
       }
@@ -47,12 +41,12 @@ export const useStudentsStore = defineStore('students', {
     async createStudent(studentData) {
       this.loading = true
       try {
-        const res = await axios.post(BASE_URL, studentData, { headers: this.getAuthHeader() })
+        const res = await axios.post('/students', studentData, this.getAuthConfig())
         this.students.push(res.data.student)
-        return { status: res.status, message: res.data.message }
-      } catch (error) {
-        console.error('Create student error:', parseError(error))
-        throw error
+        return res
+      } catch (e) {
+        console.error('Create student error:', e.response || e)
+        throw e
       } finally {
         this.loading = false
       }
@@ -61,13 +55,13 @@ export const useStudentsStore = defineStore('students', {
     async updateStudent(studentId, updatedData) {
       this.loading = true
       try {
-        const res = await axios.put(`${BASE_URL}${studentId}`, updatedData, { headers: this.getAuthHeader() })
+        const res = await axios.put(`/students/${studentId}`, updatedData, this.getAuthConfig())
         const index = this.students.findIndex(s => s.student_id === studentId)
         if (index !== -1) this.students[index] = res.data.student
-        return { status: res.status, message: res.data.message }
-      } catch (error) {
-        console.error('Update student error:', parseError(error))
-        throw error
+        return res
+      } catch (e) {
+        console.error('Update student error:', e.response || e)
+        throw e
       } finally {
         this.loading = false
       }
@@ -76,27 +70,21 @@ export const useStudentsStore = defineStore('students', {
     async deleteStudent(studentId) {
       this.loading = true
       try {
-        const res = await axios.delete(`${BASE_URL}${studentId}`, { headers: this.getAuthHeader() })
+        const res = await axios.delete(`/students/${studentId}`, this.getAuthConfig())
         this.students = this.students.filter(s => s.student_id !== studentId)
-        return { status: res.status, message: res.data.message }
-      } catch (error) {
-        console.error('Delete student error:', parseError(error))
-        throw error
+        return res
+      } catch (e) {
+        console.error('Delete student error:', e.response || e)
+        throw e
       } finally {
         this.loading = false
       }
+    },
+
+    getAuthConfig() {
+      return this.auth.token
+        ? { headers: { Authorization: `Bearer ${this.auth.token}` } }
+        : {}
     }
   }
 })
-
-function parseError(error) {
-  if (error.response) {
-    const data = error.response.data
-    if (typeof data === 'object') return data.error || data.message || 'Unknown error'
-    return data
-  } else if (error.request) {
-    return 'Network Error: Unable to connect to server.'
-  } else {
-    return error.message
-  }
-}
