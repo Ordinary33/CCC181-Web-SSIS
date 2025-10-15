@@ -5,11 +5,18 @@ import { useAuthStore } from '@/stores/auth'
 const auth = useAuthStore()
 const username = ref('')
 const password = ref('')
-const mode = ref('login') 
+const confirmPassword = ref('')
+const mode = ref('login')
 const error = ref(null)
 
 async function handleSubmit() {
   error.value = null
+
+  if (mode.value === 'register' && password.value !== confirmPassword.value) {
+    error.value = 'Passwords do not match'
+    return
+  }
+
   try {
     if (mode.value === 'login') {
       await auth.login(username.value, password.value)
@@ -22,6 +29,7 @@ async function handleSubmit() {
 }
 </script>
 
+
 <template>
   <div class="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl p-6 w-[300px] shadow-lg">
@@ -30,7 +38,15 @@ async function handleSubmit() {
       </h2>
 
       <input v-model="username" class="input input-bordered w-full mb-2" placeholder="Username" />
-      <input v-model="password" type="password" class="input input-bordered w-full mb-4" placeholder="Password" />
+      <input v-model="password" type="password" class="input input-bordered w-full mb-2" placeholder="Password" />
+
+      <input
+        v-if="mode === 'register'"
+        v-model="confirmPassword"
+        type="password"
+        class="input input-bordered w-full mb-4"
+        placeholder="Confirm Password"
+      />
 
       <button @click="handleSubmit" :disabled="auth.loading" class="btn btn-primary w-full mb-2">
         {{ auth.loading ? (mode === 'login' ? 'Logging in...' : 'Registering...') : (mode === 'login' ? 'Login' : 'Register') }}
@@ -46,3 +62,4 @@ async function handleSubmit() {
     </div>
   </div>
 </template>
+

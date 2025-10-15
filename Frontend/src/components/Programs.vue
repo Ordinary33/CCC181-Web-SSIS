@@ -40,7 +40,7 @@
     <div class="flex justify-center items-center gap-4 mt-3">
       <button class="btn btn-success" :disabled="page === 1" @click="page--">Prev</button>
       <span>Page {{ page }} of {{ totalPages }}</span>
-      <button class="btn btn-success" :disabled="page === totalPages" @click="page++">Next</button>
+      <button class="btn btn-success" :disabled="page >= totalPages || filteredPrograms.length === 0" @click="page++">Next</button>
     </div>
   </div>
 
@@ -48,7 +48,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useProgramsStore } from '@/stores/programs'
 import { useStudentsStore } from '@/stores/students'
 import { useModalStore } from '@/stores/modals'
@@ -69,6 +69,10 @@ const page = ref(1)
 const perPage = 11
 
 onMounted(() => store.fetchPrograms())
+
+watch([query, filterBy, sortBy, sortDesc], () => {
+  page.value = 1
+})
 
 const editProgram = (program) => {
   modal.setCurrentProgram(program)
@@ -122,9 +126,21 @@ const filteredPrograms = computed(() => {
   return result
 })
 
-const totalPages = computed(() => Math.ceil(filteredPrograms.value.length / perPage))
-const paginatedPrograms = computed(() => {
-  const start = (page.value - 1) * perPage
-  return filteredPrograms.value.slice(start, start + perPage)
+  const totalPages = computed(() => {
+    const pages = Math.ceil(filteredPrograms.value.length / perPage)
+    return pages > 0 ? pages : 1
+  })
+
+  watch(filteredPrograms, () => {
+    if (filteredPrograms.value.length === 0) {
+      page.value = 1
+    } else if (page.value > totalPages.value) {
+      page.value = totalPages.value
+    }
+  })
+
+  const paginatedPrograms = computed(() => {
+    const start = (page.value - 1) * perPage
+    return filteredPrograms.value.slice(start, start + perPage)
 })
 </script>
