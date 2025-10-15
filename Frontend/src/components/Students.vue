@@ -56,6 +56,7 @@
 </template>
 
 <script setup>
+import { watch } from 'vue'
 import { ref, computed, onMounted } from 'vue'
 import { useStudentsStore } from '@/stores/students'
 import { useProgramsStore } from '@/stores/programs'
@@ -75,6 +76,10 @@ const sortBy = ref('ID')
 const sortDesc = ref(false)
 const page = ref(1)
 const perPage = 11
+
+watch([query, filterBy, sortBy, sortDesc], () => {
+  page.value = 1
+})
 
 onMounted(() => {
   programsStore.fetchPrograms()
