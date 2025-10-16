@@ -53,8 +53,10 @@ const toggleDropdown = () => {
 }
 
 const logout = () => {
-  authStore.logout()
-  router.push('/login')
-  dropdownOpen.value = false
+  if (confirm("Are you sure you want to logout?")) {
+    authStore.logout()
+    router.push('/login')
+    dropdownOpen.value = false
+  }
 }
 </script>
