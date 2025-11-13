@@ -29,21 +29,30 @@ const goToPage = (p) => {
 </script>
 
 <template>
-  <div class="flex justify-center items-center gap-1 flex-wrap mt-3">
-    <button class="btn btn-sm btn-outline" :disabled="props.page === 1" @click="goToPage(1)"><<</button>
-    <button class="btn btn-sm btn-outline" :disabled="props.page === 1" @click="goToPage(props.page - 1)"><</button>
+    <div class="flex flex-col items-center gap-1 mt-3">
+        <span class="text-sm font-medium">
+            Page {{ props.page }} of {{ props.totalPages }}
+        </span>
 
-    <button
-      v-for="p in pageNumbers"
-      :key="p + '-page'"
-      class="btn btn-sm"
-      :class="{'btn-primary': p === props.page, 'btn-outline': p !== props.page}"
-      @click="goToPage(p)"
-    >
-      {{ p }}
-    </button>
+        <div class="flex justify-center items-center gap-1 flex-wrap mt-1">
+            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(1)"><<</button>
+            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(props.page - 1)"><</button>
 
-    <button class="btn btn-sm btn-outline" :disabled="props.page === props.totalPages" @click="goToPage(props.page + 1)">></button>
-    <button class="btn btn-sm btn-outline" :disabled="props.page === props.totalPages" @click="goToPage(props.totalPages)">>></button>
-  </div>
+            <button
+            v-for="p in pageNumbers"
+            :key="p + '-page'"
+            class="btn btn-sm btn-success text-black border-none font-bold"
+            :class="{
+                'bg-[#E5EFC1] text-black': p === props.page,
+                'bg-success text-white': p !== props.page
+            }"
+            @click="goToPage(p)"
+            >
+            {{ p }}
+            </button>
+
+            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.page + 1)">></button>
+            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.totalPages)">>></button>
+        </div>
+    </div>
 </template>
