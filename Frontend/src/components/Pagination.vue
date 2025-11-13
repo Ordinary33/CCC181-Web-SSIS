@@ -1,5 +1,9 @@
 <script setup>
 import { computed } from 'vue'
+import ArrowLeft from '@/components/icons/arrowleft.svg'
+import ArrowRight from '@/components/icons/arrowright.svg'
+import DoubleArrowLeft from '@/components/icons/doublearrowleft.svg'
+import DoubleArrowRight from '@/components/icons/doublearrowright.svg'
 
 const props = defineProps({
   page: { type: Number, required: true },
@@ -35,8 +39,8 @@ const goToPage = (p) => {
         </span>
 
         <div class="flex justify-center items-center gap-1 flex-wrap mt-1">
-            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(1)"><<</button>
-            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(props.page - 1)"><</button>
+            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(1)"><img :src="DoubleArrowLeft" alt="DAL"></button>
+            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(props.page - 1)"><img :src="ArrowLeft" alt="AL"></button>
 
             <button
             v-for="p in pageNumbers"
@@ -51,8 +55,8 @@ const goToPage = (p) => {
             {{ p }}
             </button>
 
-            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.page + 1)">></button>
-            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.totalPages)">>></button>
+            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.page + 1)"><img :src="ArrowRight" alt="DAR"></button>
+            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.totalPages)"><img :src="DoubleArrowRight" alt="AR"></button>
         </div>
     </div>
 </template>

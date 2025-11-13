@@ -3,6 +3,7 @@ import { useModalStore } from '@/stores/modals'
 import StudentIcon from '@/components/icons/student.svg'
 import ProgramIcon from '@/components/icons/program.svg'
 import CollegeIcon from '@/components/icons/college.svg'
+import AddIcon from '@/components/icons/add.svg'
 
 const modal = useModalStore()
 
@@ -20,9 +21,9 @@ function openProgramModal() {
 <template>
 <div class="fab">
   
-  <div tabindex="0" role="button" class="btn btn-lg btn-circle btn-success">+</div>
-  <div>Add Student <button class="btn btn-lg btn-circle" @click="openStudentModal"><img :src="StudentIcon" alt="Student"></button></div>
-  <div>Add Program <button class="btn btn-lg btn-circle" @click="openProgramModal"><img :src="ProgramIcon" alt="Program"></button></div>
-  <div>Add College <button class="btn btn-lg btn-circle" @click="modal.open('collegeForm')"><img :src="CollegeIcon" alt="College"></button></div>
+  <div tabindex="0" role="button" class="btn btn-lg btn-circle btn-success"><img :src="AddIcon" alt="Add"></div>
+  <div>Add Student <button class="btn btn-lg btn-circle bg-[#E5EFC1]" @click="openStudentModal"><img :src="StudentIcon" alt="Student"></button></div>
+  <div>Add Program <button class="btn btn-lg btn-circle bg-[#E5EFC1]" @click="openProgramModal"><img :src="ProgramIcon" alt="Program"></button></div>
+  <div>Add College <button class="btn btn-lg btn-circle bg-[#E5EFC1]" @click="modal.open('collegeForm')"><img :src="CollegeIcon" alt="College"></button></div>
 </div>
 </template>

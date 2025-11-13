@@ -18,7 +18,7 @@ const filterBy = ref('All')
 const sortBy = ref('ID')
 const sortDesc = ref(false)
 const page = ref(1)
-const perPage = 11
+const perPage = 10
 
 watch([query, filterBy, sortBy, sortDesc], () => page.value = 1)
 
@@ -109,6 +109,7 @@ const deleteStudent = async (student) => {
       <table v-else class="table max-w-4xl mx-auto bg-[#E5EFC1]">
         <thead>
           <tr>
+            <th></th>
             <th>ID</th>
             <th>First Name</th>
             <th>Last Name</th>
@@ -120,6 +121,13 @@ const deleteStudent = async (student) => {
         </thead>
         <tbody>
           <tr v-for="s in paginatedStudents" :key="s.student_id">
+            <td>
+              <div class="avatar">
+              <div class="w-10 rounded-full">
+                <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" />
+              </div>
+              </div>
+            </td>
             <td>{{ s.student_id }}</td>
             <td>{{ s.first_name }}</td>
             <td>{{ s.last_name }}</td>

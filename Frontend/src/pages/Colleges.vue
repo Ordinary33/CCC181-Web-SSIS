@@ -18,7 +18,7 @@ const filterBy = ref('All')
 const sortBy = ref('College Code')
 const sortDesc = ref(false)
 const page = ref(1)
-const perPage = 11
+const perPage = 10
 
 onMounted(() => store.fetchColleges())
 
