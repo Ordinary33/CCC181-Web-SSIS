@@ -7,7 +7,22 @@ import axios from 'axios'
 import App from './App.vue'
 import router from './router'
 
-axios.defaults.baseURL = 'http://localhost:5000'
+const inferApiBaseUrl = () => {
+  if (import.meta.env.VITE_API_BASE_URL) {
+    return import.meta.env.VITE_API_BASE_URL
+  }
+
+  if (typeof window !== 'undefined') {
+    if (window.location.port === '5173') {
+      return 'http://localhost:5000'
+    }
+    return window.location.origin
+  }
+
+  return 'http://localhost:5000'
+}
+
+axios.defaults.baseURL = inferApiBaseUrl()
 
 axios.interceptors.request.use(config => {
   const token = localStorage.getItem('token')

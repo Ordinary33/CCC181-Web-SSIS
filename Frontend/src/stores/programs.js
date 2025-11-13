@@ -21,7 +21,7 @@ export const useProgramsStore = defineStore('programs', {
       if (this.programs.length > 0) return
       this.loading = true
       try {
-        const res = await axios.get('/programs/', { headers: this.getAuthHeader() })
+        const res = await axios.get('/api/programs/', { headers: this.getAuthHeader() })
         this.programs = res.data
       } catch (error) {
         console.error('Fetch programs error:', error)
@@ -33,7 +33,7 @@ export const useProgramsStore = defineStore('programs', {
     async refreshPrograms() {
       this.loading = true
       try {
-        const res = await axios.get('/programs/', { headers: this.getAuthHeader() })
+        const res = await axios.get('/api/programs/', { headers: this.getAuthHeader() })
         this.programs = res.data
       } catch (error) {
         console.error('Refresh programs error:', error)
@@ -45,7 +45,7 @@ export const useProgramsStore = defineStore('programs', {
     async createProgram(programData) {
       this.loading = true
       try {
-        const res = await axios.post('/programs/', programData, { headers: this.getAuthHeader() })
+        const res = await axios.post('/api/programs/', programData, { headers: this.getAuthHeader() })
         this.programs.push(res.data.program)
         return { success: true, message: res.data.message }
       } catch (error) {
@@ -59,7 +59,7 @@ export const useProgramsStore = defineStore('programs', {
     async updateProgram(programCode, updatedData) {
       this.loading = true
       try {
-        const res = await axios.put(`/programs/${programCode}`, updatedData, { headers: this.getAuthHeader() })
+        const res = await axios.put(`/api/programs/${programCode}`, updatedData, { headers: this.getAuthHeader() })
         const index = this.programs.findIndex(p => p.program_code === programCode)
         if (index !== -1) this.programs[index] = res.data.program
         return { success: true, message: res.data.message }
@@ -74,7 +74,7 @@ export const useProgramsStore = defineStore('programs', {
     async deleteProgram(programCode) {
       this.loading = true
       try {
-        const res = await axios.delete(`/programs/${programCode}`, { headers: this.getAuthHeader() })
+        const res = await axios.delete(`/api/programs/${programCode}`, { headers: this.getAuthHeader() })
         this.programs = this.programs.filter(p => p.program_code !== programCode)
         return { success: true, message: res.data.message }
       } catch (error) {

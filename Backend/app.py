@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, send_from_directory, render_template, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 from flask_jwt_extended import JWTManager
@@ -13,20 +13,62 @@ from blueprints.colleges import colleges_bp
 from blueprints.auth import auth_bp
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder="static", template_folder="templates")
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
  
 
-    CORS(app, origins=["http://localhost:5173"], supports_credentials=True)
+    allowed_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5000",
+        "http://localhost:5000"
+    ]
+
+    CORS(
+        app,
+        resources={
+            r"/api/*": {
+                "origins": allowed_origins,
+                "methods": ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+                "allow_headers": ["Content-Type", "Authorization"],
+                "supports_credentials": True
+            }
+        }
+    )
 
     jwt = JWTManager(app)
 
-    app.register_blueprint(auth_bp, url_prefix="/auth")
-    app.register_blueprint(students_bp, url_prefix="/students")
-    app.register_blueprint(programs_bp, url_prefix="/programs")
-    app.register_blueprint(colleges_bp, url_prefix="/colleges")
+    app.register_blueprint(auth_bp, url_prefix="/api/auth")
+    app.register_blueprint(students_bp, url_prefix="/api/students")
+    app.register_blueprint(programs_bp, url_prefix="/api/programs")
+    app.register_blueprint(colleges_bp, url_prefix="/api/colleges")
+
+    @app.before_request
+    def spa_history_mode_fallback():
+        if request.method != "GET":
+            return None
+
+        accept_header = request.headers.get("Accept", "")
+
+        if "text/html" not in accept_header:
+            return None
+
+        if request.path.startswith("/api/"):
+            return None
+
+        return render_template("index.html")
+    
+    @app.route("/", defaults={"path": ""})
+    @app.route("/<path:path>")
+    def serve_vue(path):
+        potential_static = os.path.join(app.static_folder, path)
+
+        if path != "" and os.path.exists(potential_static):
+            if os.path.isfile(potential_static):
+                return send_from_directory(app.static_folder, path)
+
+        return render_template("index.html")
 
     return app
 

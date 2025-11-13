@@ -88,9 +88,9 @@ const handleSubmit = async () => {
     }
 
     if (modal.isEditMode) {
-      await axios.put(`http://127.0.0.1:5000/colleges/${originalCollege.value}`, collegeData)
+      await axios.put(`/api/colleges/${originalCollege.value}`, collegeData)
     } else {
-      await axios.post('http://127.0.0.1:5000/colleges', collegeData)
+      await axios.post('/api/colleges', collegeData)
     }
 
     const wasEditMode = modal.isEditMode
