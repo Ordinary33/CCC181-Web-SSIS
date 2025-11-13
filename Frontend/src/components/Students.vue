@@ -1,12 +1,12 @@
 <script setup>
-import { watch } from 'vue'
-import { ref, computed, onMounted } from 'vue'
+import { watch, ref, computed, onMounted } from 'vue'
 import { useStudentsStore } from '@/stores/students'
 import { useProgramsStore } from '@/stores/programs'
 import { useModalStore } from '@/stores/modals'
 import { useToastStore } from '@/stores/toasts'
 import Searchbar from './Searchbar.vue'
 import StudentModal from './Modals/StudentModal.vue'
+import Pagination from './Pagination.vue'
 
 const store = useStudentsStore()
 const programsStore = useProgramsStore()
@@ -20,9 +20,7 @@ const sortDesc = ref(false)
 const page = ref(1)
 const perPage = 11
 
-watch([query, filterBy, sortBy, sortDesc], () => {
-  page.value = 1
-})
+watch([query, filterBy, sortBy, sortDesc], () => page.value = 1)
 
 onMounted(() => {
   programsStore.fetchPrograms()
@@ -42,20 +40,14 @@ const filteredStudents = computed(() => {
   let result = store.students.filter(s => {
     if (!query.value) return true
     const q = query.value.toLowerCase()
-
-    if (filterBy.value === 'Gender')
-      return s.gender.toLowerCase() === q
-
-    if (filterBy.value === 'All')
-      return Object.values(keyMap).some(k => (s[k] + '').toLowerCase().includes(q))
-
+    if (filterBy.value === 'Gender') return s.gender.toLowerCase() === q
+    if (filterBy.value === 'All') return Object.values(keyMap).some(k => (s[k] + '').toLowerCase().includes(q))
     return (s[keyMap[filterBy.value]] + '').toLowerCase().includes(q)
   })
 
   if (sortBy.value) {
     result.sort((a, b) => {
-      let aVal = a[keyMap[sortBy.value]]
-      let bVal = b[keyMap[sortBy.value]]
+      let aVal = a[keyMap[sortBy.value]], bVal = b[keyMap[sortBy.value]]
       if (typeof aVal === 'string') aVal = aVal.toLowerCase()
       if (typeof bVal === 'string') bVal = bVal.toLowerCase()
       if (aVal < bVal) return sortDesc.value ? 1 : -1
@@ -67,17 +59,11 @@ const filteredStudents = computed(() => {
   return result
 })
 
-const totalPages = computed(() => {
-  const pages = Math.ceil(filteredStudents.value.length / perPage)
-  return pages > 0 ? pages : 1
-})
+const totalPages = computed(() => Math.max(1, Math.ceil(filteredStudents.value.length / perPage)))
 
 watch(filteredStudents, () => {
-  if (filteredStudents.value.length === 0) {
-    page.value = 1
-  } else if (page.value > totalPages.value) {
-    page.value = totalPages.value
-  }
+  if (filteredStudents.value.length === 0) page.value = 1
+  else if (page.value > totalPages.value) page.value = totalPages.value
 })
 
 const paginatedStudents = computed(() => {
@@ -92,16 +78,14 @@ const editStudent = (student) => {
 }
 
 const deleteStudent = async (student) => {
-  if (confirm(`Are you sure you want to delete student ${student.student_id}?`)) {
-    try {
-      const result = await store.deleteStudent(student.student_id)
-      toastStore.showToast('Student deleted successfully', 'success')
-      await store.fetchStudents()
-      
-    } catch (error) {
-      console.error('Error deleting student:', error)
-      toastStore.showToast(`Error: ${error.message}`, 'error')
-    }
+  if (!confirm(`Are you sure you want to delete student ${student.student_id}?`)) return
+  try {
+    await store.deleteStudent(student.student_id)
+    toastStore.showToast('Student deleted successfully', 'success')
+    await store.fetchStudents()
+  } catch (err) {
+    console.error(err)
+    toastStore.showToast(`Error: ${err.message}`, 'error')
   }
 }
 </script>
@@ -152,11 +136,11 @@ const deleteStudent = async (student) => {
         </tbody>
       </table>
 
-      <div class="flex justify-center items-center gap-4 mt-3">
-        <button class="btn btn-success" :disabled="page === 1" @click="page--">Prev</button>
-        <span>Page {{ page }} of {{ totalPages }}</span>
-        <button class="btn btn-success" :disabled="page >= totalPages || filteredStudents.length === 0" @click="page++">Next</button>
-      </div>
+      <Pagination
+        :page="page"
+        :total-pages="totalPages"
+        @update:page="page = $event"
+      />
     </div>
 
     <StudentModal />
