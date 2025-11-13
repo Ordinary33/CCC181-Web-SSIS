@@ -41,6 +41,7 @@ watch(
   (isEdit) => {
     if (isEdit && modal.currentStudent) {
       Object.assign(formData, modal.currentStudent)
+      revokePreviewUrl()
       previewUrl.value = modal.currentStudent.image_url || ''
       selectedFile.value = null
     } else if (!isEdit) {
@@ -54,6 +55,7 @@ watch(
   (student) => {
     if (student && modal.isEditMode) {
       Object.assign(formData, student)
+      revokePreviewUrl()
       previewUrl.value = student.image_url || ''
       selectedFile.value = null
     }
@@ -89,6 +91,13 @@ const triggerFilePicker = () => {
 }
 
 const displayedImage = computed(() => previewUrl.value || formData.image_url || '')
+
+const placeholderInitials = computed(() => {
+  const first = (formData.first_name || '').trim().charAt(0)
+  const last = (formData.last_name || '').trim().charAt(0)
+  const initials = `${first}${last}`.toUpperCase()
+  return initials || '+'
+})
 
 const handleAvatarKeydown = (event) => {
   if (event.key === 'Enter' || event.key === ' ') {
@@ -226,7 +235,6 @@ const resetForm = () => {
         <form @submit.prevent="handleSubmit">
 
           <div class="form-group avatar-group">
-            <label>Profile:</label>
             <input
               ref="fileInputRef"
               type="file"
@@ -247,7 +255,8 @@ const resetForm = () => {
                 alt="Student avatar preview"
               />
               <div v-else class="avatar-placeholder">
-                <span>Select Photo</span>
+                <span class="avatar-initials">{{ placeholderInitials }}</span>
+                <span class="avatar-hint">Upload photo</span>
               </div>
               <div class="avatar-overlay">Change photo</div>
             </div>
@@ -358,12 +367,14 @@ input.error, select.error { border-color:#dc3545; box-shadow:0 0 0 0.2rem rgba(2
 .btn { padding:10px 20px; border:none; border-radius:4px; cursor:pointer;}
 .btn-cancel { background:#6c757d; color:white;}
 .btn-save { background:#28a745; color:white;}
-.avatar-group { display:flex; flex-direction:column; gap:12px; align-items:flex-start;}
+.avatar-group { display:flex; margin-top:20px; justify-content:center; margin-bottom:20px; }
 .file-input-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0;}
-.avatar-wrapper { position:relative; width:120px; height:120px; border-radius:50%; background:#f2f2f2; border:2px dashed #ccc; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; transition:transform 0.2s ease, border-color 0.2s ease;}
-.avatar-wrapper:hover, .avatar-wrapper:focus { border-color:#28a745; transform:scale(1.02); outline:none;}
-.avatar-wrapper img { width:100%; height:100%; object-fit:cover;}
-.avatar-placeholder { color:#666; text-align:center; font-size:14px; font-weight:600; padding:0 12px; line-height:1.4;}
-.avatar-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; text-transform:uppercase; letter-spacing:0.05em; opacity:0; transition:opacity 0.2s ease;}
+.avatar-wrapper { position:relative; width:120px; height:120px; border-radius:50%; background:#f2f2f2; border:2px dashed #ccc; display:flex; align-items:center; justify-content:center; cursor:pointer; transition:transform 0.2s ease, border-color 0.2s ease;}
+.avatar-wrapper:hover, .avatar-wrapper:focus { border-color:#28a745; transform:scale(1.02); outline:none; box-shadow:0 0 0 3px rgba(40,167,69,0.35);}
+.avatar-wrapper img { width:100%; height:100%; object-fit:cover; border-radius:50%;}
+.avatar-placeholder { width:100%; height:100%; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px; color:#495057; background:#f8f9fa; border-radius:50%; border:1px solid rgba(0,0,0,0.08);}
+.avatar-initials { font-size:28px; font-weight:700; letter-spacing:0.05em;}
+.avatar-hint { font-size:11px; font-weight:500; text-transform:uppercase; letter-spacing:0.08em; color:#868e96;}
+.avatar-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; text-transform:uppercase; letter-spacing:0.05em; opacity:0; transition:opacity 0.2s ease; border-radius:50%;}
 .avatar-wrapper:hover .avatar-overlay, .avatar-wrapper:focus .avatar-overlay { opacity:1;}
 </style>

@@ -125,17 +125,18 @@ const deleteStudent = async (student) => {
           <tr v-for="s in paginatedStudents" :key="s.student_id">
             <td>
               <div class="avatar">
-              <div class="w-10 rounded-full">
-                <img v-if="s.image_url"
-                  :src="s.image_url"
-                  alt="avatar" />
-
-                  <img
-                  v-else
-                  src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
-                  alt="default avatar"
-                />
-              </div>
+                <div class="w-12 rounded-full">
+                  <template v-if="s.image_url">
+                    <img :src="s.image_url" alt="avatar" />
+                  </template>
+                  <template v-else>
+                    <div class="bg-neutral text-neutral-content w-12 h-12 rounded-full flex items-center justify-center">
+                      <span class="text-lg font-semibold">
+                        {{ s.first_name.charAt(0) + s.last_name.charAt(0) }}
+                      </span>
+                    </div>
+                  </template>
+                </div>
               </div>
             </td>
             <td>{{ s.student_id }}</td>
