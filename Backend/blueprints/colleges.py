@@ -95,3 +95,16 @@ def delete_college(college_code):
         conn.commit()
 
     return jsonify({"message": "College deleted successfully", "college": deleted}), 200
+
+@colleges_bp.route("/<college_code>", methods=["GET"])
+def get_program(college_code):
+    pool = get_pool()
+    with pool.connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("SELECT * FROM colleges WHERE college_code = %s", (college_code,))
+            college = cur.fetchone()
+
+    if not college:
+        return jsonify({"error": "College not found"}), 404
+
+    return jsonify(college), 200

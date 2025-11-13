@@ -135,3 +135,16 @@ def update_student_image(student_id):
         conn.commit()
 
     return jsonify({"message": "Student image updated successfully", "student": updated_student}), 200
+
+@students_bp.route("/<student_id>", methods=["GET"], strict_slashes=False)
+def get_student(student_id):
+    pool = get_pool()
+    with pool.connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("SELECT * FROM students WHERE student_id = %s", (student_id,))
+            student = cur.fetchone()
+
+    if not student:
+        return jsonify({"error": "Student not found"}), 404
+
+    return jsonify(student), 200

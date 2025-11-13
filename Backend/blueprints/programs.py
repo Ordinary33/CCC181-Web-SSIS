@@ -99,3 +99,16 @@ def delete_program(program_code):
         conn.commit()
 
     return jsonify({"message": "Program deleted successfully", "program": deleted}), 200
+
+@programs_bp.route("/<program_code>", methods=["GET"])
+def get_program(program_code):
+    pool = get_pool()
+    with pool.connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("SELECT * FROM programs WHERE program_code = %s", (program_code,))
+            program = cur.fetchone()
+
+    if not program:
+        return jsonify({"error": "Program not found"}), 404
+
+    return jsonify(program), 200
