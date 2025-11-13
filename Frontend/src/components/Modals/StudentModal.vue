@@ -1,15 +1,18 @@
 <script setup>
-import { onMounted, reactive, watch, ref, computed } from 'vue'
+import { onMounted, reactive, watch, ref, computed, onBeforeUnmount } from 'vue'
 import { useModalStore } from '@/stores/modals'
 import { useProgramsStore } from '@/stores/programs'
 import { useStudentsStore } from '@/stores/students'
 import { useToastStore } from '@/stores/toasts'
-import { supabase } from '@/plugins/supabase.js'
 
 const modal = useModalStore()
 const programsStore = useProgramsStore()
 const studentsStore = useStudentsStore()
 const toastStore = useToastStore()
+
+const selectedFile = ref(null)
+const fileInputRef = ref(null)
+const previewUrl = ref('')
 
 const formData = reactive({
   student_id: '',
@@ -38,6 +41,8 @@ watch(
   (isEdit) => {
     if (isEdit && modal.currentStudent) {
       Object.assign(formData, modal.currentStudent)
+      previewUrl.value = modal.currentStudent.image_url || ''
+      selectedFile.value = null
     } else if (!isEdit) {
       resetForm()
     }
@@ -47,13 +52,50 @@ watch(
 watch(
   () => modal.currentStudent,
   (student) => {
-    if (student && modal.isEditMode) Object.assign(formData, student)
+    if (student && modal.isEditMode) {
+      Object.assign(formData, student)
+      previewUrl.value = student.image_url || ''
+      selectedFile.value = null
+    }
   }
 )
 
 onMounted(() => {
   programsStore.fetchPrograms()
 })
+
+const revokePreviewUrl = () => {
+  if (previewUrl.value && previewUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(previewUrl.value)
+  }
+}
+
+onBeforeUnmount(() => {
+  revokePreviewUrl()
+})
+
+const handleFileChange = (event) => {
+  const file = event.target.files[0] || null
+  selectedFile.value = file
+
+  revokePreviewUrl()
+  previewUrl.value = file ? URL.createObjectURL(file) : (formData.image_url || '')
+  if (fileInputRef.value) fileInputRef.value.value = ''
+  if (event?.target) event.target.value = ''
+}
+
+const triggerFilePicker = () => {
+  fileInputRef.value?.click()
+}
+
+const displayedImage = computed(() => previewUrl.value || formData.image_url || '')
+
+const handleAvatarKeydown = (event) => {
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault()
+    triggerFilePicker()
+  }
+}
 
 const validateForm = () => {
   Object.keys(errors).forEach(key => (errors[key] = ''))
@@ -103,7 +145,6 @@ const validateForm = () => {
 
 const handleSubmit = async () => {
   if (!validateForm()) return
-
   saving.value = true
 
   try {
@@ -113,32 +154,49 @@ const handleSubmit = async () => {
       last_name: formData.last_name.trim(),
       year_level: parseInt(formData.year_level),
       gender: formData.gender,
-      program_code: formData.program_code,
-      image_url: formData.image_url
+      program_code: formData.program_code
     }
 
+    let res
     if (modal.isEditMode) {
-      await studentsStore.updateStudent(formData.student_id, studentData)
+      // Update student first
+      res = await studentsStore.updateStudent(formData.student_id, studentData)
+      // Upload image only if a new file was selected
+      if (selectedFile.value) {
+        const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
+        if (imageUrl) {
+          revokePreviewUrl()
+          formData.image_url = imageUrl
+          previewUrl.value = imageUrl
+          selectedFile.value = null
+          if (fileInputRef.value) fileInputRef.value.value = ''
+        }
+      }
     } else {
-      await studentsStore.createStudent(studentData)
+      // Create student first
+      res = await studentsStore.createStudent(studentData)
+      // Upload image only after student exists
+      if (selectedFile.value) {
+        const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
+        if (imageUrl) {
+          revokePreviewUrl()
+          formData.image_url = imageUrl
+          previewUrl.value = imageUrl
+          selectedFile.value = null
+          if (fileInputRef.value) fileInputRef.value.value = ''
+        }
+      }
     }
 
     await studentsStore.refreshStudents()
-
-    const wasEditMode = modal.isEditMode
     resetForm()
     modal.close()
-    toastStore.showToast(wasEditMode ? 'Student updated successfully!' : 'Student added successfully!', 'success')
+    toastStore.showToast(modal.isEditMode ? 'Student updated successfully!' : 'Student added successfully!', 'success')
+    selectedFile.value = null
+
   } catch (error) {
     console.error('Error saving student:', error)
-    if (error && error.response && error.response.data) {
-      const data = error.response.data
-      toastStore.showToast(data.error || data.message || `Error (${error.response.status})`, 'error')
-    } else if (error && error.message) {
-      toastStore.showToast(error.message, 'error')
-    } else {
-      toastStore.showToast('Error saving student. Please try again.', 'error')
-    }
+    toastStore.showToast(error.message || 'Error saving student', 'error')
   } finally {
     saving.value = false
   }
@@ -153,29 +211,10 @@ const formatStudentId = (event) => {
 const resetForm = () => {
   Object.keys(formData).forEach(key => (formData[key] = ''))
   Object.keys(errors).forEach(key => (errors[key] = ''))
-}
-
-const handleFileUpload = async (event) => {
-  const file = event.target.files[0]
-  if (!file) return
-
-  const fileName = `${formData.student_id || Date.now()}_${file.name}`
-
-  const { data, error } = await supabase.storage
-    .from('student-avatars')  
-    .upload(fileName, file, { upsert: true })
-
-  if (error) {
-    console.error('Upload error:', error)
-    toastStore.showToast('Failed to upload image', 'error')
-    return
-  }
-
-  const { publicUrl } = supabase.storage
-    .from('avatars')
-    .getPublicUrl(fileName)
-
-  formData.image_url = publicUrl
+  selectedFile.value = null
+  revokePreviewUrl()
+  previewUrl.value = ''
+  if (fileInputRef.value) fileInputRef.value.value = ''
 }
 </script>
 
@@ -186,15 +225,32 @@ const handleFileUpload = async (event) => {
         <h1 class="modal-title">{{ modal.isEditMode ? 'Edit Student' : 'Add Student' }}</h1>
         <form @submit.prevent="handleSubmit">
 
-          <div class="form-group">
+          <div class="form-group avatar-group">
             <label>Profile:</label>
-            <input type="file" accept="image/*" @change="handleFileUpload" />
-            <img
-              v-if="formData.image_url"
-              :src="formData.image_url"
-              class="w-20 h-20 rounded-full mt-2"
-              alt="Student avatar"
+            <input
+              ref="fileInputRef"
+              type="file"
+              accept="image/*"
+              class="file-input-hidden"
+              @change="handleFileChange"
             />
+            <div
+              class="avatar-wrapper"
+              role="button"
+              tabindex="0"
+              @click="triggerFilePicker"
+              @keydown="handleAvatarKeydown"
+            >
+              <img
+                v-if="displayedImage"
+                :src="displayedImage"
+                alt="Student avatar preview"
+              />
+              <div v-else class="avatar-placeholder">
+                <span>Select Photo</span>
+              </div>
+              <div class="avatar-overlay">Change photo</div>
+            </div>
           </div>
 
           <div class="form-group">
@@ -302,4 +358,12 @@ input.error, select.error { border-color:#dc3545; box-shadow:0 0 0 0.2rem rgba(2
 .btn { padding:10px 20px; border:none; border-radius:4px; cursor:pointer;}
 .btn-cancel { background:#6c757d; color:white;}
 .btn-save { background:#28a745; color:white;}
+.avatar-group { display:flex; flex-direction:column; gap:12px; align-items:flex-start;}
+.file-input-hidden { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); border:0;}
+.avatar-wrapper { position:relative; width:120px; height:120px; border-radius:50%; background:#f2f2f2; border:2px dashed #ccc; display:flex; align-items:center; justify-content:center; cursor:pointer; overflow:hidden; transition:transform 0.2s ease, border-color 0.2s ease;}
+.avatar-wrapper:hover, .avatar-wrapper:focus { border-color:#28a745; transform:scale(1.02); outline:none;}
+.avatar-wrapper img { width:100%; height:100%; object-fit:cover;}
+.avatar-placeholder { color:#666; text-align:center; font-size:14px; font-weight:600; padding:0 12px; line-height:1.4;}
+.avatar-overlay { position:absolute; inset:0; background:rgba(0,0,0,0.45); color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; text-transform:uppercase; letter-spacing:0.05em; opacity:0; transition:opacity 0.2s ease;}
+.avatar-wrapper:hover .avatar-overlay, .avatar-wrapper:focus .avatar-overlay { opacity:1;}
 </style>

@@ -83,6 +83,44 @@ export const useStudentsStore = defineStore('students', {
       }
     },
 
+    async updateStudentImage(studentId, file) {
+      this.loading = true
+      try {
+        const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+        if (!allowedTypes.includes(file.type)) throw new Error('Please upload a valid image (JPEG, PNG, WebP)')
+    
+        const maxSize = 5 * 1024 * 1024
+        if (file.size > maxSize) throw new Error('File size must be less than 5MB')
+    
+        const fileExt = file.name.split('.').pop()
+        const fileName = `students/${studentId}-${Date.now()}.${fileExt}`
+    
+        const { error: uploadError } = await supabase.storage
+          .from('student-avatars')
+          .upload(fileName, file, { cacheControl: '3600', upsert: true, contentType: file.type })
+    
+        if (uploadError) throw new Error(uploadError.message)
+    
+        const { data: urlData } = supabase.storage
+          .from('student-avatars')
+          .getPublicUrl(fileName)
+    
+        if (!urlData?.publicUrl) throw new Error('Failed to get image URL')
+    
+        const res = await axios.patch(`/students/${studentId}/image`, { image_url: urlData.publicUrl }, this.getAuthConfig())
+    
+        const index = this.students.findIndex(s => s.student_id === studentId)
+        if (index !== -1) this.students[index].image_url = res.data.student.image_url
+    
+        return res.data.student.image_url
+      } catch (e) {
+        console.error('Update student image error:', e.response || e)
+        throw e
+      } finally {
+        this.loading = false
+      }
+    },
+    
     getAuthConfig() {
       return this.auth.token
         ? { headers: { Authorization: `Bearer ${this.auth.token}` } }

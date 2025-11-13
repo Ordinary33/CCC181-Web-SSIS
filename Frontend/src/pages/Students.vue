@@ -131,10 +131,10 @@ const deleteStudent = async (student) => {
                   alt="avatar" />
 
                   <img
-                    v-else
-                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
-                    alt="default avatar"
-                  />
+                  v-else
+                  src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                  alt="default avatar"
+                />
               </div>
               </div>
             </td>
