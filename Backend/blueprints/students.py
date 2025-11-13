@@ -110,3 +110,28 @@ def delete_student(student_id):
         conn.commit()
 
     return jsonify({"message": "Student deleted successfully", "student": deleted}), 200
+
+@students_bp.route("/<student_id>/image", methods=["PATCH"], strict_slashes=False)
+@jwt_required()
+def update_student_image(student_id):
+    data = request.get_json()
+    image_url = data.get("image_url")
+
+    if not image_url:
+        return jsonify({"error": "image_url is required"}), 400
+
+    pool = get_pool()
+    with pool.connection() as conn:
+        with conn.cursor(row_factory=dict_row) as cur:
+            cur.execute("SELECT 1 FROM students WHERE student_id = %s", (student_id,))
+            if not cur.fetchone():
+                return jsonify({"error": "Student not found"}), 404
+
+            cur.execute(
+                "UPDATE students SET image_url = %s WHERE student_id = %s RETURNING *",
+                (image_url, student_id)
+            )
+            updated_student = cur.fetchone()
+        conn.commit()
+
+    return jsonify({"message": "Student image updated successfully", "student": updated_student}), 200

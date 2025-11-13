@@ -1,6 +1,8 @@
 import { defineStore } from 'pinia'
-import axios from 'axios'
 import { useAuthStore } from './auth'
+import { supabase } from '@/plugins/supabase.js'
+
+import axios from 'axios'
 
 export const useStudentsStore = defineStore('students', {
   state: () => ({

@@ -4,6 +4,8 @@ import { useStudentsStore } from '@/stores/students'
 import { useProgramsStore } from '@/stores/programs'
 import { useModalStore } from '@/stores/modals'
 import { useToastStore } from '@/stores/toasts'
+
+
 import Searchbar from '../components/Searchbar.vue'
 import StudentModal from '../components/Modals/StudentModal.vue'
 import Pagination from '../components/Pagination.vue'
@@ -124,7 +126,15 @@ const deleteStudent = async (student) => {
             <td>
               <div class="avatar">
               <div class="w-10 rounded-full">
-                <img src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp" />
+                <img v-if="s.image_url"
+                  :src="s.image_url"
+                  alt="avatar" />
+
+                  <img
+                    v-else
+                    src="https://img.daisyui.com/images/profile/demo/yellingcat@192.webp"
+                    alt="default avatar"
+                  />
               </div>
               </div>
             </td>

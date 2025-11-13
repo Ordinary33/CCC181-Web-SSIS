@@ -4,6 +4,7 @@ import { useModalStore } from '@/stores/modals'
 import { useProgramsStore } from '@/stores/programs'
 import { useStudentsStore } from '@/stores/students'
 import { useToastStore } from '@/stores/toasts'
+import { supabase } from '@/plugins/supabase.js'
 
 const modal = useModalStore()
 const programsStore = useProgramsStore()
@@ -16,7 +17,8 @@ const formData = reactive({
   last_name: '',
   year_level: '',
   gender: '',
-  program_code: ''
+  program_code: '',
+  image_url: ''
 })
 
 const errors = reactive({
@@ -111,7 +113,8 @@ const handleSubmit = async () => {
       last_name: formData.last_name.trim(),
       year_level: parseInt(formData.year_level),
       gender: formData.gender,
-      program_code: formData.program_code
+      program_code: formData.program_code,
+      image_url: formData.image_url
     }
 
     if (modal.isEditMode) {
@@ -151,6 +154,29 @@ const resetForm = () => {
   Object.keys(formData).forEach(key => (formData[key] = ''))
   Object.keys(errors).forEach(key => (errors[key] = ''))
 }
+
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
+
+  const fileName = `${formData.student_id || Date.now()}_${file.name}`
+
+  const { data, error } = await supabase.storage
+    .from('student-avatars')  
+    .upload(fileName, file, { upsert: true })
+
+  if (error) {
+    console.error('Upload error:', error)
+    toastStore.showToast('Failed to upload image', 'error')
+    return
+  }
+
+  const { publicUrl } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(fileName)
+
+  formData.image_url = publicUrl
+}
 </script>
 
 <template>
@@ -159,6 +185,18 @@ const resetForm = () => {
       <div class="modal-content">
         <h1 class="modal-title">{{ modal.isEditMode ? 'Edit Student' : 'Add Student' }}</h1>
         <form @submit.prevent="handleSubmit">
+
+          <div class="form-group">
+            <label>Profile:</label>
+            <input type="file" accept="image/*" @change="handleFileUpload" />
+            <img
+              v-if="formData.image_url"
+              :src="formData.image_url"
+              class="w-20 h-20 rounded-full mt-2"
+              alt="Student avatar"
+            />
+          </div>
+
           <div class="form-group">
             <label>Student ID:</label>
             <input
