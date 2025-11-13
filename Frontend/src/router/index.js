@@ -14,11 +14,6 @@ const router = createRouter({
       component: Home
     },
     {
-      path: '/test',
-      name: 'Test',
-      component: Test,
-    },
-    {
       path: '/students',
       name: 'Students',
       component: Students,
@@ -32,6 +27,10 @@ const router = createRouter({
       path: '/colleges',
       name: 'Colleges',
       component: Colleges,
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      redirect: '/'
     },
 
   ],

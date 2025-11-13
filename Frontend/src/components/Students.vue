@@ -1,60 +1,3 @@
-<template>
-  <div>
-    <Searchbar
-      v-model:query="query"
-      v-model:filter="filterBy"
-      v-model:sortBy="sortBy"
-      v-model:sortDesc="sortDesc"
-      :filters="['All','ID','First Name','Last Name','Year','Gender','Program']"
-      :sortOptions="['ID','First Name','Last Name','Year','Gender','Program']"
-    />
-
-    <div class="mt-10 overflow-x-auto rounded-box bg-transparent">
-      <div v-if="store.loading" class="flex justify-center items-center h-64">
-        <span class="loading loading-spinner loading-lg text-info"></span>
-      </div>
-
-      <table v-else class="table max-w-4xl mx-auto bg-[#E5EFC1]">
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>First Name</th>
-            <th>Last Name</th>
-            <th>Year</th>
-            <th>Gender</th>
-            <th>Program</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="s in paginatedStudents" :key="s.student_id">
-            <td>{{ s.student_id }}</td>
-            <td>{{ s.first_name }}</td>
-            <td>{{ s.last_name }}</td>
-            <td>{{ s.year_level }}</td>
-            <td>{{ s.gender }}</td>
-            <td>{{ s.program_code || 'None' }}</td>
-            <td class="text-center">
-              <div class="flex justify-center gap-2">
-                <button class="btn btn-accent btn-sm" @click="editStudent(s)">Edit</button>
-                <button class="btn btn-error btn-sm" @click="deleteStudent(s)">Delete</button>
-              </div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="flex justify-center items-center gap-4 mt-3">
-        <button class="btn btn-success" :disabled="page === 1" @click="page--">Prev</button>
-        <span>Page {{ page }} of {{ totalPages }}</span>
-        <button class="btn btn-success" :disabled="page >= totalPages || filteredStudents.length === 0" @click="page++">Next</button>
-      </div>
-    </div>
-
-    <StudentModal />
-  </div>
-</template>
-
 <script setup>
 import { watch } from 'vue'
 import { ref, computed, onMounted } from 'vue'
@@ -162,3 +105,60 @@ const deleteStudent = async (student) => {
   }
 }
 </script>
+
+<template>
+  <div>
+    <Searchbar
+      v-model:query="query"
+      v-model:filter="filterBy"
+      v-model:sortBy="sortBy"
+      v-model:sortDesc="sortDesc"
+      :filters="['All','ID','First Name','Last Name','Year','Gender','Program']"
+      :sortOptions="['ID','First Name','Last Name','Year','Gender','Program']"
+    />
+
+    <div class="mt-10 overflow-x-auto rounded-box bg-transparent">
+      <div v-if="store.loading" class="flex justify-center items-center h-64">
+        <span class="loading loading-spinner loading-lg text-info"></span>
+      </div>
+
+      <table v-else class="table max-w-4xl mx-auto bg-[#E5EFC1]">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>First Name</th>
+            <th>Last Name</th>
+            <th>Year</th>
+            <th>Gender</th>
+            <th>Program</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr v-for="s in paginatedStudents" :key="s.student_id">
+            <td>{{ s.student_id }}</td>
+            <td>{{ s.first_name }}</td>
+            <td>{{ s.last_name }}</td>
+            <td>{{ s.year_level }}</td>
+            <td>{{ s.gender }}</td>
+            <td>{{ s.program_code || 'None' }}</td>
+            <td class="text-center">
+              <div class="flex justify-center gap-2">
+                <button class="btn btn-accent btn-sm" @click="editStudent(s)">Edit</button>
+                <button class="btn btn-error btn-sm" @click="deleteStudent(s)">Delete</button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="flex justify-center items-center gap-4 mt-3">
+        <button class="btn btn-success" :disabled="page === 1" @click="page--">Prev</button>
+        <span>Page {{ page }} of {{ totalPages }}</span>
+        <button class="btn btn-success" :disabled="page >= totalPages || filteredStudents.length === 0" @click="page++">Next</button>
+      </div>
+    </div>
+
+    <StudentModal />
+  </div>
+</template>
