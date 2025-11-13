@@ -4,9 +4,9 @@ import { useProgramsStore } from '@/stores/programs'
 import { useCollegesStore } from '@/stores/colleges'
 import { useModalStore } from '@/stores/modals'
 import { useToastStore } from '@/stores/toasts'
-import Searchbar from './Searchbar.vue'
-import CollegeModal from './Modals/CollegeModal.vue'
-import Pagination from './Pagination.vue'
+import Searchbar from '../components/Searchbar.vue'
+import CollegeModal from '../components/Modals/CollegeModal.vue'
+import Pagination from '../components/Pagination.vue'
 
 const store = useCollegesStore()
 const programsStore = useProgramsStore()

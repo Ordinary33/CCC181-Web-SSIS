@@ -1,9 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../components/home.vue'
-import Test from '../components/Test.vue'
-import Students from '../components/Students.vue'
-import Programs from '../components/Programs.vue'
-import Colleges from '../components/Colleges.vue'
+import Home from '../pages/home.vue'
+import Students from '../pages/Students.vue'
+import Programs from '../pages/Programs.vue'
+import Colleges from '../pages/Colleges.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
