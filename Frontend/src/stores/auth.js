@@ -13,7 +13,7 @@ export const useAuthStore = defineStore('auth', {
     async login(username, password) {
       this.loading = true
       try {
-        const res = await axios.post('/auth/login', { username, password })
+        const res = await axios.post('/api/auth/login', { username, password })
         if (res.status >= 200 && res.status < 300) {
           this.token = res.data.access_token
           localStorage.setItem('token', this.token)
@@ -30,7 +30,7 @@ export const useAuthStore = defineStore('auth', {
     async register(username, password) {
       this.loading = true
       try {
-        const res = await axios.post('/auth/register', { username, password })
+        const res = await axios.post('/api/auth/register', { username, password })
         if (res.status >= 200 && res.status < 300) {
           await this.login(username, password)
         }

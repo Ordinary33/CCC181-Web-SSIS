@@ -13,8 +13,8 @@ import axios from 'axios'
 const auth = useAuthStore()
 
 if (auth.token) {
-  axios.get('/auth/protected')
-    .catch(() => auth.logout()) 
+  axios.get('/api/auth/protected')
+    .catch(() => auth.logout())
 }
 </script>
 

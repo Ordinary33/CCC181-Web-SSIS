@@ -17,7 +17,7 @@ export const useCollegesStore = defineStore('colleges', {
       if (this.colleges.length > 0) return
       this.loading = true
       try {
-        const res = await axios.get('/colleges', this.getAuthConfig())
+        const res = await axios.get('/api/colleges', this.getAuthConfig())
         this.colleges = res.data
       } catch (e) {
         console.error('Fetch colleges error:', e.response || e)
@@ -29,7 +29,7 @@ export const useCollegesStore = defineStore('colleges', {
     async refreshColleges() {
       this.loading = true
       try {
-        const res = await axios.get('/colleges', this.getAuthConfig())
+        const res = await axios.get('/api/colleges', this.getAuthConfig())
         this.colleges = res.data
       } catch (e) {
         console.error('Refresh colleges error:', e.response || e)
@@ -41,7 +41,7 @@ export const useCollegesStore = defineStore('colleges', {
     async createCollege(collegeData) {
       this.loading = true
       try {
-        const res = await axios.post('/colleges', collegeData, this.getAuthConfig())
+        const res = await axios.post('/api/colleges', collegeData, this.getAuthConfig())
         this.colleges.push(res.data.college)
         return res
       } catch (e) {
@@ -55,7 +55,7 @@ export const useCollegesStore = defineStore('colleges', {
     async updateCollege(originalCode, updatedData) {
       this.loading = true
       try {
-        const res = await axios.put(`/colleges/${originalCode}`, updatedData, this.getAuthConfig())
+        const res = await axios.put(`/api/colleges/${originalCode}`, updatedData, this.getAuthConfig())
         const index = this.colleges.findIndex(c => c.college_code === originalCode)
         if (index !== -1) this.colleges[index] = res.data.college
         return res
@@ -70,7 +70,7 @@ export const useCollegesStore = defineStore('colleges', {
     async deleteCollege(collegeCode) {
       this.loading = true
       try {
-        const res = await axios.delete(`/colleges/${collegeCode}`, this.getAuthConfig())
+        const res = await axios.delete(`/api/colleges/${collegeCode}`, this.getAuthConfig())
         this.colleges = this.colleges.filter(c => c.college_code !== collegeCode)
         return res
       } catch (e) {
