@@ -4,16 +4,40 @@ import { useStudentsStore } from '@/stores/students'
 import { useProgramsStore } from '@/stores/programs'
 import { useModalStore } from '@/stores/modals'
 import { useToastStore } from '@/stores/toasts'
-
-
 import Searchbar from '../components/Searchbar.vue'
 import StudentModal from '../components/Modals/StudentModal.vue'
 import Pagination from '../components/Pagination.vue'
+import ConfirmModal from '../components/Modals/ConfirmModal.vue'
 
 const store = useStudentsStore()
 const programsStore = useProgramsStore()
 const modal = useModalStore()
 const toastStore = useToastStore()
+
+const showDeleteModal = ref(false)
+const itemToDelete = ref(null)
+const isDeleting = ref(false)
+
+const promptDelete = (student) => {
+  itemToDelete.value = student
+  showDeleteModal.value = true
+}
+
+const handleConfirmDelete = async () => {
+  if (!itemToDelete.value) return
+  
+  isDeleting.value = true
+  try {
+    await store.deleteStudent(itemToDelete.value.student_id)
+    toastStore.showToast('Student deleted successfully', 'success')
+    await store.refreshStudents()
+    showDeleteModal.value = false 
+  } catch (error) {
+    toastStore.showToast(error.message, 'error')
+  } finally {
+    isDeleting.value = false
+  }
+}
 
 const query = ref('')
 const filterBy = ref('All')
@@ -79,17 +103,6 @@ const editStudent = (student) => {
   modal.open('studentForm')
 }
 
-const deleteStudent = async (student) => {
-  if (!confirm(`Are you sure you want to delete student ${student.student_id}?`)) return
-  try {
-    await store.deleteStudent(student.student_id)
-    toastStore.showToast('Student deleted successfully', 'success')
-    await store.fetchStudents()
-  } catch (err) {
-    console.error(err)
-    toastStore.showToast(`Error: ${err.message}`, 'error')
-  }
-}
 </script>
 
 <template>
@@ -148,7 +161,7 @@ const deleteStudent = async (student) => {
             <td class="text-center">
               <div class="flex justify-center gap-2">
                 <button class="btn btn-accent btn-sm" @click="editStudent(s)">Edit</button>
-                <button class="btn btn-error btn-sm" @click="deleteStudent(s)">Delete</button>
+                <button class="btn btn-error btn-sm" @click="promptDelete(s)">Delete</button>
               </div>
             </td>
           </tr>
@@ -163,5 +176,13 @@ const deleteStudent = async (student) => {
     </div>
 
     <StudentModal />
+    <ConfirmModal 
+      :isOpen="showDeleteModal"
+      title="Delete Student?"
+      :message="`Are you sure you want to delete ${itemToDelete?.first_name} ${itemToDelete?.last_name}? This cannot be undone.`"
+      :isLoading="isDeleting"
+      @close="showDeleteModal = false"
+      @confirm="handleConfirmDelete"
+    />
   </div>
 </template>
