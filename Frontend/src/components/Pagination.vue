@@ -41,7 +41,7 @@ const goToPage = (p) => {
     <div class="flex justify-center items-center gap-1 flex-wrap">
       
       <button 
-        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        class="btn btn-sm btn-square border border-[#0F766E] bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:border-gray-200 disabled:opacity-50" 
         :disabled="props.page === 1" 
         @click="goToPage(1)"
       >
@@ -49,7 +49,7 @@ const goToPage = (p) => {
       </button>
 
       <button 
-        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        class="btn btn-sm btn-square border border-[#0F766E] bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:border-gray-200 disabled:opacity-50" 
         :disabled="props.page === 1" 
         @click="goToPage(props.page - 1)"
       >
@@ -59,10 +59,10 @@ const goToPage = (p) => {
       <button
         v-for="p in pageNumbers"
         :key="p + '-page'"
-        class="btn btn-sm min-w-[32px] border border-gray-200 shadow-sm transition-all duration-200"
+        class="btn btn-sm min-w-[32px] shadow-sm transition-all duration-200 border"
         :class="{
           'bg-[#0F766E] text-white border-[#0F766E] hover:bg-[#0d6e66] hover:border-[#0d6e66]': p === props.page, 
-          'bg-white text-gray-700 hover:bg-[#CCFBF1] hover:text-[#0F766E] hover:border-[#CCFBF1]': p !== props.page
+          'bg-white text-gray-700 border-gray-300 hover:bg-[#CCFBF1] hover:text-[#0F766E] hover:border-[#0F766E]': p !== props.page
         }"
         @click="goToPage(p)"
       >
@@ -70,7 +70,7 @@ const goToPage = (p) => {
       </button>
 
       <button 
-        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        class="btn btn-sm btn-square border border-[#0F766E] bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:border-gray-200 disabled:opacity-50" 
         :disabled="props.page === props.totalPages" 
         @click="goToPage(props.page + 1)"
       >
@@ -78,7 +78,7 @@ const goToPage = (p) => {
       </button>
 
       <button 
-        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        class="btn btn-sm btn-square border border-[#0F766E] bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:border-gray-200 disabled:opacity-50" 
         :disabled="props.page === props.totalPages" 
         @click="goToPage(props.totalPages)"
       >

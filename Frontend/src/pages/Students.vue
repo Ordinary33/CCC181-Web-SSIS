@@ -116,7 +116,7 @@ const editStudent = (student) => {
       :sortOptions="['ID','First Name','Last Name','Year','Gender','Program']"
     />
 
-    <div class="mt-10 overflow-x-auto rounded-box bg-transparent">
+    <div class="overflow-x-auto rounded-box bg-transparent">
       <div v-if="store.loading" class="flex justify-center items-center h-64">
         <span class="loading loading-spinner loading-lg text-info"></span>
       </div>
