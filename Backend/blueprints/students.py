@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_cors import CORS
 
 students_bp = Blueprint("students", __name__)
-CORS(students_bp)  # allow all origins for this blueprint
+CORS(students_bp)  
 
 REQUIRED_FIELDS = ["student_id", "first_name", "last_name", "year_level", "gender", "program_code"]
 
