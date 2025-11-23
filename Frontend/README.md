@@ -1,35 +1,59 @@
-# ccc181-ssis
+# **🎓 Veridia Student Information System (Web-SSIS)**
 
-This template should help get you started developing with Vue 3 in Vite.
+Welcome to the repository for **Veridia**, the Simple Student Information System (SSIS) web application. This application provides a modern dashboard for managing students, academic programs, and colleges.
 
-## Recommended IDE Setup
+## **✨ Technologies**
 
-[VSCode](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+| Component | Technology |
+| :---- | :---- |
+| **Frontend** | Vue 3 (Vite) |
+| **Styling** | Tailwind CSS / DaisyUI |
+| **Backend** | Python Flask (Pipenv) |
 
-## Customize configuration
+## **🚀 Local Setup Guide**
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+Follow these instructions to get both the backend API and the frontend client running locally.
 
-## Project Setup
+### **1\. ⚙️ Backend Setup (Python/Flask)**
 
-```sh
-npm install
-```
+This process sets up the Flask API that handles data and authentication.
 
-### Compile and Hot-Reload for Development
+1. **Navigate to the backend directory:**  
+   cd backend
 
-```sh
-npm run dev
-```
+2. **Install dependencies and create virtual environment:**  
+   pipenv install
 
-### Compile and Minify for Production
+3. **Activate the virtual environment:**  
+   pipenv shell  
+   💡 *Note: All subsequent commands for the backend should be run while the virtual environment is active.*  
+4. Create and Configure Environment Variables:  
+   Copy the example configuration to a new .env file:  
+   cp .env.example .env
 
-```sh
-npm run build
-```
+   Now, open the **.env** file and add your required configuration (e.g., DATABASE\_URI, SECRET\_KEY, etc.).  
+5. **Run the Development Server:**  
+   flask run
 
-### Lint with [ESLint](https://eslint.org/)
+   The API will now be running (usually at http://127.0.0.1:5000).
 
-```sh
-npm run lint
-```
+### **2\. 🖥️ Frontend Setup (Vue/Vite)**
+
+The frontend is configured to build directly into the backend's dist folder for production, but should be run separately for development.
+
+1. **Navigate to the frontend directory:**  
+   cd frontend
+
+   *(Ensure you are in a separate terminal window, or exit the backend shell first, unless your IDE handles simultaneous servers.)*  
+2. **Install dependencies using npm:**  
+   npm install
+
+3. **Start the Frontend Development Server (Hot Reload):**  
+   npm run dev
+
+### **3\. 📦 Production Build**
+
+Use this command when ready to deploy or serve the app using the Flask server.
+
+1. **Compile and Minify for Production (Deploys files to backend/dist):**  
+   npm run build  
