@@ -19,7 +19,7 @@ if (auth.token) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-[#A2D5AB] relative">
+  <div class="min-h-screen bg-gradient-to-br from-[#F8FAFC] to-[#C4F4E8] relative">
     <header>
       <ToastContainer />
       <Navbar />

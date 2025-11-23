@@ -21,7 +21,7 @@ const logout = () => {
 </script>
 
 <template>
-  <div class="navbar bg-[#39AEA9] text-white shadow-md">
+  <div class="navbar bg-[#0F766E] text-white shadow-md">
     <div class="navbar-start">
       <div class="dropdown">
         <div tabindex="0" role="button" class="btn btn-ghost lg:hidden">
@@ -35,13 +35,13 @@ const logout = () => {
     <div class="navbar-center hidden lg:flex">
       <ul class="menu menu-horizontal px-1 space-x-6">
         <li>
-          <RouterLink to="/students" class="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Students</RouterLink>
+          <RouterLink to="/students" class="font-pages" active-class="bg-[#0D9488] text-black rounded-lg" style="font-size: 20px;">Students</RouterLink>
         </li>
         <li>
-          <RouterLink to="/programs" class="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Programs</RouterLink>
+          <RouterLink to="/programs" class="font-pages" active-class="bg-[#0D9488] text-black rounded-lg" style="font-size: 20px;">Programs</RouterLink>
         </li>
         <li>
-          <RouterLink to="/colleges" class="font-pages" active-class="bg-[#E5EFC1] text-black rounded-lg" style="font-size: 20px;">Colleges</RouterLink>
+          <RouterLink to="/colleges" class="font-pages" active-class="bg-[#0D9488] text-black rounded-lg" style="font-size: 20px;">Colleges</RouterLink>
         </li>
       </ul>
     </div>

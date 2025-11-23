@@ -139,7 +139,7 @@ const paginatedColleges = computed(() => {
     <div class="mt-10 max-w-6xl mx-auto overflow-hidden rounded-xl shadow-md border border-gray-200 bg-white">
     <table class="table w-full">
       
-      <thead class="bg-[#E5EFC1] text-gray-700 font-bold uppercase text-xs tracking-wider">
+      <thead class="bg-[#F0FDFA] text-gray-700 font-bold uppercase text-xs tracking-wider">
         <tr>
           <th class="py-4 pl-6">College Code</th>
           <th>Description</th>

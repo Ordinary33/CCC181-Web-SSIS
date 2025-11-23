@@ -33,30 +33,58 @@ const goToPage = (p) => {
 </script>
 
 <template>
-    <div class="flex flex-col items-center gap-1 mt-3">
-        <span class="text-sm font-medium">
-            Page {{ props.page }} of {{ props.totalPages }}
-        </span>
+  <div class="flex flex-col items-center gap-3 mt-6">
+    <span class="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+      Page {{ props.page }} of {{ props.totalPages }}
+    </span>
 
-        <div class="flex justify-center items-center gap-1 flex-wrap mt-1">
-            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(1)"><img :src="DoubleArrowLeft" alt="DAL"></button>
-            <button class="btn btn-sm btn-success" :disabled="props.page === 1" @click="goToPage(props.page - 1)"><img :src="ArrowLeft" alt="AL"></button>
+    <div class="flex justify-center items-center gap-1 flex-wrap">
+      
+      <button 
+        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        :disabled="props.page === 1" 
+        @click="goToPage(1)"
+      >
+        <img :src="DoubleArrowLeft" alt="DAL" class="w-4 h-4">
+      </button>
 
-            <button
-            v-for="p in pageNumbers"
-            :key="p + '-page'"
-            class="btn btn-sm btn-success text-black border-none font-bold"
-            :class="{
-                'bg-[#E5EFC1] text-black': p === props.page,
-                'bg-success text-white': p !== props.page
-            }"
-            @click="goToPage(p)"
-            >
-            {{ p }}
-            </button>
+      <button 
+        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        :disabled="props.page === 1" 
+        @click="goToPage(props.page - 1)"
+      >
+        <img :src="ArrowLeft" alt="AL" class="w-4 h-4">
+      </button>
 
-            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.page + 1)"><img :src="ArrowRight" alt="DAR"></button>
-            <button class="btn btn-sm btn-success" :disabled="props.page === props.totalPages" @click="goToPage(props.totalPages)"><img :src="DoubleArrowRight" alt="AR"></button>
-        </div>
+      <button
+        v-for="p in pageNumbers"
+        :key="p + '-page'"
+        class="btn btn-sm min-w-[32px] border border-gray-200 shadow-sm transition-all duration-200"
+        :class="{
+          'bg-[#0F766E] text-white border-[#0F766E] hover:bg-[#0d6e66] hover:border-[#0d6e66]': p === props.page, 
+          'bg-white text-gray-700 hover:bg-[#CCFBF1] hover:text-[#0F766E] hover:border-[#CCFBF1]': p !== props.page
+        }"
+        @click="goToPage(p)"
+      >
+        {{ p }}
+      </button>
+
+      <button 
+        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        :disabled="props.page === props.totalPages" 
+        @click="goToPage(props.page + 1)"
+      >
+        <img :src="ArrowRight" alt="DAR" class="w-4 h-4">
+      </button>
+
+      <button 
+        class="btn btn-sm btn-square border-none bg-[#CCFBF1] hover:bg-[#99F6E4] text-[#0F766E] disabled:bg-gray-100 disabled:opacity-50" 
+        :disabled="props.page === props.totalPages" 
+        @click="goToPage(props.totalPages)"
+      >
+        <img :src="DoubleArrowRight" alt="AR" class="w-4 h-4">
+      </button>
+      
     </div>
+  </div>
 </template>

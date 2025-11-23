@@ -124,7 +124,7 @@ const editStudent = (student) => {
       <div class="mt-10 max-w-6xl mx-auto overflow-hidden rounded-xl shadow-md border border-gray-200 bg-white">
     
     <table class="table w-full">
-      <thead class="bg-[#E5EFC1] text-gray-700 font-bold uppercase text-xs tracking-wider">
+      <thead class="bg-[#F0FDFA] text-gray-700 font-bold uppercase text-xs tracking-wider">
         <tr>
           <th class="w-16"></th> <th>ID</th>
           <th>First Name</th>
@@ -141,7 +141,7 @@ const editStudent = (student) => {
           
           <td>
             <div class="avatar">
-              <div class="w-10 h-10 rounded-full ring ring-[#E5EFC1] ring-offset-2">
+              <div class="w-10 h-10 rounded-full ring ring-[#0D9488] ring-offset-2">
                 <template v-if="s.image_url">
                   <img :src="s.image_url" alt="avatar" />
                 </template>
