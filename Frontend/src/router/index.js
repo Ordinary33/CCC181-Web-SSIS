@@ -10,22 +10,26 @@ const router = createRouter({
     {
       path: '/',
       name: 'Home',
-      component: Home
+      component: Home,
+      meta: { title: 'Dashboard' }
     },
     {
       path: '/students',
       name: 'Students',
       component: Students,
+      meta: { title: 'Students' }
     },
     {
       path: '/programs',
       name: 'Programs',
       component: Programs,
+      meta: { title: 'Programs' }
     },
     {
       path: '/colleges',
       name: 'Colleges',
       component: Colleges,
+      meta: { title: 'Colleges' }
     },
     {
       path: '/:pathMatch(.*)*',
@@ -34,5 +38,12 @@ const router = createRouter({
 
   ],
 })
+
+const DEFAULT_TITLE = 'Veridia';
+
+router.beforeEach((to, from, next) => {
+  document.title = to.meta.title ? `${to.meta.title} | ${DEFAULT_TITLE}` : DEFAULT_TITLE;
+  next();
+});
 
 export default router

@@ -8,6 +8,7 @@ import ProgramModal from './components/Modals/ProgramModal.vue'
 import CollegeModal from './components/Modals/CollegeModal.vue'
 import AuthModal from './components/Modals/AuthModal.vue'
 import { useAuthStore } from '@/stores/auth'
+import Footer from './components/Footer.vue'
 import axios from 'axios'
 
 const auth = useAuthStore()
@@ -19,19 +20,26 @@ if (auth.token) {
 </script>
 
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-[#F8FAFC] to-[#C4F4E8] relative">
+  <div class="min-h-screen bg-gradient-to-br from-[#F8FAFC] to-[#C4F4E8] relative flex flex-col">
+    
     <header>
       <ToastContainer />
       <Navbar />
       <AddFAB v-if="auth.isLoggedIn" />
     </header>
-    <RouterView v-if="auth.isLoggedIn" />
+
+    <main class="flex-grow px-4 pb-8">
+      <RouterView v-if="auth.isLoggedIn" />
+    </main>
 
     <StudentModal v-if="auth.isLoggedIn" />
     <ProgramModal v-if="auth.isLoggedIn" />
     <CollegeModal v-if="auth.isLoggedIn" />
 
     <AuthModal v-if="!auth.isLoggedIn" />
+
+    <Footer />
+    
   </div>
 </template>
 

@@ -2,6 +2,7 @@
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import UserIcon from '@/components/icons/user.svg'
+import VeridiaLogo from '@/components/icons/VeridiaLogo.png'
 
 const authStore = useAuthStore()
 const router = useRouter()
@@ -37,8 +38,17 @@ const logout = () => {
         </ul>
       </div>
 
-      <RouterLink to="/" class="btn btn-ghost text-3xl font-ssis tracking-wide text-white">
-        SSIS
+      <RouterLink to="/" class="btn btn-ghost flex items-center gap-3 px-2 hover:bg-white/10">
+        <img :src="VeridiaLogo" alt="Logo" class="w-8 h-8 object-contain brightness-0 invert" />
+        
+        <div class="flex flex-col items-start leading-tight">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-teal-200 opacity-80">
+            Veridia
+          </span>
+          <span class="text-xl font-bold tracking-tight text-white">
+            Dashboard
+          </span>
+        </div>
       </RouterLink>
     </div>
 
