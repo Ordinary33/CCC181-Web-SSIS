@@ -1,23 +1,36 @@
 <script setup>
+import { ref } from 'vue' 
 import { useAuthStore } from '@/stores/auth'
 import { useRouter } from 'vue-router'
 import UserIcon from '@/components/icons/user.svg'
 import VeridiaLogo from '@/components/icons/VeridiaLogo.png'
+import ConfirmModal from '@/components/Modals/ConfirmModal.vue' 
 
 const authStore = useAuthStore()
 const router = useRouter()
 
-const logout = () => {
-  if (confirm("Are you sure you want to logout?")) {
-    
+const showLogoutModal = ref(false)
+const isLoggingOut = ref(false)
+
+const promptLogout = () => {
     const activeElement = document.activeElement
     if (activeElement) {
         activeElement.blur()
     }
+    showLogoutModal.value = true
+}
 
-    authStore.logout()
-    router.push('/login')
-  }
+const confirmLogout = async () => {
+    isLoggingOut.value = true
+    try {
+        authStore.logout()
+        router.push('/login')
+    } catch (error) {
+        console.error("Logout error:", error)
+    } finally {
+        isLoggingOut.value = false
+        showLogoutModal.value = false 
+    }
 }
 </script>
 
@@ -95,7 +108,7 @@ const logout = () => {
         
         <ul tabindex="0" class="menu dropdown-content bg-white text-gray-700 shadow-xl rounded-box w-52 mt-2 p-2 border border-gray-100">
           <li>
-            <button @click="logout" class="justify-between hover:bg-red-50 hover:text-red-600">
+            <button @click="promptLogout" class="justify-between hover:bg-red-50 hover:text-red-600">
               Logout
             </button>
           </li>
@@ -104,6 +117,13 @@ const logout = () => {
     </div>
     
   </div>
+  <ConfirmModal 
+    :isOpen="showLogoutModal"
+    title="Confirm Logout"
+    message="Are you sure you want to log out of Veridia? You will need to log back in to access the dashboard."
+    confirm-label="Yes, Logout"
+    :isLoading="isLoggingOut"
+    @close="showLogoutModal = false"
+    @confirm="confirmLogout"
+  />
 </template>
-
-
