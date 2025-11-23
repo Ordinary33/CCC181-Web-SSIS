@@ -168,36 +168,29 @@ const handleSubmit = async () => {
 
     const wasEditing = modal.isEditMode
 
-    let res
     if (wasEditing) {
-      res = await studentsStore.updateStudent(formData.student_id, studentData)
-      if (selectedFile.value) {
-        const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
-        if (imageUrl) {
-          revokePreviewUrl()
-          formData.image_url = imageUrl
-          previewUrl.value = imageUrl
-          selectedFile.value = null
-          if (fileInputRef.value) fileInputRef.value.value = ''
-        }
-      }
+      await studentsStore.updateStudent(formData.student_id, studentData)
     } else {
-      res = await studentsStore.createStudent(studentData)
-      if (selectedFile.value) {
-        const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
-        if (imageUrl) {
-          revokePreviewUrl()
-          formData.image_url = imageUrl
-          previewUrl.value = imageUrl
-          selectedFile.value = null
-          if (fileInputRef.value) fileInputRef.value.value = ''
-        }
+      await studentsStore.createStudent(studentData)
+    }
+
+    if (selectedFile.value) {
+      const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
+      
+      if (imageUrl) {
+        revokePreviewUrl()
+        formData.image_url = imageUrl
+        previewUrl.value = imageUrl
+        selectedFile.value = null
+        if (fileInputRef.value) fileInputRef.value.value = ''
       }
     }
+
 
     await studentsStore.refreshStudents()
     resetForm()
     modal.close()
+    
     toastStore.showToast(wasEditing ? 'Student updated successfully!' : 'Student added successfully!', 'success')
     selectedFile.value = null
 
