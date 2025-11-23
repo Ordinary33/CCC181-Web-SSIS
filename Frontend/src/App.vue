@@ -8,7 +8,6 @@ import ProgramModal from './components/Modals/ProgramModal.vue'
 import CollegeModal from './components/Modals/CollegeModal.vue'
 import AuthModal from './components/Modals/AuthModal.vue'
 import { useAuthStore } from '@/stores/auth'
-import Footer from './components/Footer.vue'
 import axios from 'axios'
 
 const auth = useAuthStore()
@@ -37,8 +36,6 @@ if (auth.token) {
     <CollegeModal v-if="auth.isLoggedIn" />
 
     <AuthModal v-if="!auth.isLoggedIn" />
-
-    <Footer />
     
   </div>
 </template>

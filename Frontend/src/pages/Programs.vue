@@ -132,7 +132,7 @@ const paginatedPrograms = computed(() => {
       
       <thead class="bg-[#F0FDFA] text-gray-700 font-bold uppercase text-xs tracking-wider">
         <tr>
-          <th class="py-4 pl-6">Code</th>
+          <th class="py-4 pl-6">Program Code</th>
           <th>Description</th>
           <th>College</th>
           <th class="text-center">Actions</th>

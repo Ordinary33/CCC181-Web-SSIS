@@ -7,6 +7,7 @@ import { useCollegesStore } from '@/stores/colleges'
 import StudentIcon from '@/components/icons/student.svg'
 import ProgramIcon from '@/components/icons/program.svg'
 import CollegeIcon from '@/components/icons/college.svg'
+import Footer from '@/components/Footer.vue'
 
 const studentsStore = useStudentsStore()
 const programsStore = useProgramsStore()
@@ -179,4 +180,5 @@ onMounted(async () => {
     </div>
 
   </div>
+  <Footer />
 </template>
