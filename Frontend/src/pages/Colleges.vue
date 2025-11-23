@@ -7,11 +7,43 @@ import { useToastStore } from '@/stores/toasts'
 import Searchbar from '../components/Searchbar.vue'
 import CollegeModal from '../components/Modals/CollegeModal.vue'
 import Pagination from '../components/Pagination.vue'
+import ConfirmModal from '@/components/Modals/ConfirmModal.vue'
 
 const store = useCollegesStore()
 const programsStore = useProgramsStore()
 const modal = useModalStore()
 const toastStore = useToastStore()
+
+const showDeleteModal = ref(false)
+const itemToDelete = ref(null)
+const isDeleting = ref(false)
+
+const promptDelete = (college) => {
+  itemToDelete.value = college
+  showDeleteModal.value = true
+}
+
+const handleConfirmDelete = async () => {
+  if (!itemToDelete.value) return
+  
+  isDeleting.value = true
+  try {
+    const result = await store.deleteCollege(itemToDelete.value.college_code)
+    
+    toastStore.showToast(result.message || 'College deleted successfully', 'success')
+    
+    await store.refreshColleges()
+    await programsStore.refreshPrograms()
+    
+    showDeleteModal.value = false
+    itemToDelete.value = null
+  } catch (error) {
+    console.error('Error deleting college:', error)
+    toastStore.showToast(error.message || 'Failed to delete college', 'error')
+  } finally {
+    isDeleting.value = false
+  }
+}
 
 const query = ref('')
 const filterBy = ref('All')
@@ -119,14 +151,13 @@ const paginatedColleges = computed(() => {
           <td class="text-center">
             <div class="flex justify-center gap-2">
               <button class="btn btn-accent btn-sm" @click="editCollege(c)">Edit</button>
-              <button class="btn btn-error btn-sm" @click="deleteCollege(c)">Delete</button>
+              <button class="btn btn-error btn-sm" @click="promptDelete(c)">Delete</button>
             </div>
           </td>
         </tr>
       </tbody>
     </table>
 
-    <!-- Reusable Pagination component -->
     <Pagination
       :page="page"
       :total-pages="totalPages"
@@ -135,6 +166,15 @@ const paginatedColleges = computed(() => {
   </div>
 
   <CollegeModal />
+
+  <ConfirmModal 
+    :isOpen="showDeleteModal"
+    title="Delete College?"
+    :message="`Are you sure you want to delete ${itemToDelete?.college_name} (${itemToDelete?.college_code})? This will also delete all associated programs.`"
+    :isLoading="isDeleting"
+    @close="showDeleteModal = false"
+    @confirm="handleConfirmDelete"
+  />
 </template>
 
 

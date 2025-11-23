@@ -7,11 +7,43 @@ import { useToastStore } from '@/stores/toasts'
 import Searchbar from '../components/Searchbar.vue'
 import ProgramModal from '../components/Modals/ProgramModal.vue'
 import Pagination from '../components/Pagination.vue'
+import ConfirmModal from '@/components/Modals/ConfirmModal.vue'
 
 const store = useProgramsStore()
 const studentsStore = useStudentsStore()
 const modal = useModalStore()
 const toastStore = useToastStore()
+
+const showDeleteModal = ref(false)
+const itemToDelete = ref(null)
+const isDeleting = ref(false)
+
+const promptDelete = (program) => {
+  itemToDelete.value = program
+  showDeleteModal.value = true
+}
+
+const handleConfirmDelete = async () => {
+  if (!itemToDelete.value) return
+  
+  isDeleting.value = true
+  try {
+    await store.deleteProgram(itemToDelete.value.program_code)
+    
+    toastStore.showToast('Program deleted successfully!', 'success')
+    
+    await store.refreshPrograms()
+    await studentsStore.refreshStudents()
+    
+    showDeleteModal.value = false
+    itemToDelete.value = null
+  } catch (error) {
+    console.error('Error deleting program:', error)
+    toastStore.showToast(error.message || 'Failed to delete program', 'error')
+  } finally {
+    isDeleting.value = false
+  }
+}
 
 const query = ref('')
 const filterBy = ref('All')
@@ -30,19 +62,6 @@ const editProgram = (program) => {
   modal.setCurrentProgram(program)
   modal.setEditMode(true)
   modal.open('programForm')
-}
-
-const deleteProgram = async (program) => {
-  if (!confirm(`Are you sure you want to delete program ${program.program_code}?`)) return
-  try {
-    await store.deleteProgram(program.program_code)
-    toastStore.showToast('Program deleted successfully!', 'success')
-    await store.refreshPrograms()
-    await studentsStore.refreshStudents()
-  } catch (error) {
-    console.error('Error deleting program:', error)
-    toastStore.showToast(error.message || 'Failed to delete program', 'error')
-  }
 }
 
 const filteredPrograms = computed(() => {
@@ -125,7 +144,7 @@ const paginatedPrograms = computed(() => {
           <td class="text-center">
             <div class="flex justify-center gap-2">
               <button class="btn btn-accent btn-sm" @click="editProgram(p)">Edit</button>
-              <button class="btn btn-error btn-sm" @click="deleteProgram(p)">Delete</button>
+              <button class="btn btn-error btn-sm" @click="promptDelete(p)">Delete</button>
             </div>
           </td>
         </tr>
@@ -140,5 +159,14 @@ const paginatedPrograms = computed(() => {
   </div>
 
   <ProgramModal />
+
+  <ConfirmModal 
+    :isOpen="showDeleteModal"
+    title="Delete Program?"
+    :message="`Are you sure you want to delete ${itemToDelete?.program_name} (${itemToDelete?.program_code})? This cannot be undone.`"
+    :isLoading="isDeleting"
+    @close="showDeleteModal = false"
+    @confirm="handleConfirmDelete"
+  />
 </template>
 
