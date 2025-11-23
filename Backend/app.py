@@ -13,11 +13,19 @@ from blueprints.colleges import colleges_bp
 from blueprints.auth import auth_bp
 
 def create_app():
-    app = Flask(__name__, static_folder="static", template_folder="templates")
+    BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+    DIST_DIR = os.path.join(BASE_DIR, 'dist')
+
+    app = Flask(
+        __name__, 
+        static_folder=DIST_DIR, 
+        template_folder=DIST_DIR
+    )
+    
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
     app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY")
     app.config["JWT_ACCESS_TOKEN_EXPIRES"] = timedelta(hours=2)
- 
+    
 
     allowed_origins = [
         "http://localhost:5173",
@@ -56,16 +64,15 @@ def create_app():
 
         if request.path.startswith("/api/"):
             return None
-
+        
         return render_template("index.html")
     
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def serve_vue(path):
-        potential_static = os.path.join(app.static_folder, path)
-
-        if path != "" and os.path.exists(potential_static):
-            if os.path.isfile(potential_static):
+        if path != "":
+            file_path = os.path.join(app.root_path, app.static_folder, path)
+            if os.path.exists(file_path) and not os.path.isdir(file_path):
                 return send_from_directory(app.static_folder, path)
 
         return render_template("index.html")
