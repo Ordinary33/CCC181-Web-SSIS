@@ -166,11 +166,11 @@ const handleSubmit = async () => {
       program_code: formData.program_code
     }
 
+    const wasEditing = modal.isEditMode
+
     let res
-    if (modal.isEditMode) {
-      // Update student first
+    if (wasEditing) {
       res = await studentsStore.updateStudent(formData.student_id, studentData)
-      // Upload image only if a new file was selected
       if (selectedFile.value) {
         const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
         if (imageUrl) {
@@ -182,9 +182,7 @@ const handleSubmit = async () => {
         }
       }
     } else {
-      // Create student first
       res = await studentsStore.createStudent(studentData)
-      // Upload image only after student exists
       if (selectedFile.value) {
         const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
         if (imageUrl) {
@@ -200,7 +198,7 @@ const handleSubmit = async () => {
     await studentsStore.refreshStudents()
     resetForm()
     modal.close()
-    toastStore.showToast(modal.isEditMode ? 'Student updated successfully!' : 'Student added successfully!', 'success')
+    toastStore.showToast(wasEditing ? 'Student updated successfully!' : 'Student added successfully!', 'success')
     selectedFile.value = null
 
   } catch (error) {
