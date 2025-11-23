@@ -1,3 +1,25 @@
+<script setup>
+import { useAuthStore } from '@/stores/auth'
+import { useRouter } from 'vue-router'
+import UserIcon from '@/components/icons/user.svg'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+const logout = () => {
+  if (confirm("Are you sure you want to logout?")) {
+    
+    const activeElement = document.activeElement
+    if (activeElement) {
+        activeElement.blur()
+    }
+
+    authStore.logout()
+    router.push('/login')
+  }
+}
+</script>
+
 <template>
   <div class="navbar bg-[#39AEA9] text-white shadow-md">
     <div class="navbar-start">
@@ -38,25 +60,4 @@
     </div>
 </template>
 
-<script setup>
-import { ref } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { useRouter } from 'vue-router'
-import UserIcon from '@/components/icons/user.svg'
 
-const authStore = useAuthStore()
-const router = useRouter()
-const dropdownOpen = ref(false)
-
-const toggleDropdown = () => {
-  dropdownOpen.value = !dropdownOpen.value
-}
-
-const logout = () => {
-  if (confirm("Are you sure you want to logout?")) {
-    authStore.logout()
-    router.push('/login')
-    dropdownOpen.value = false
-  }
-}
-</script>
