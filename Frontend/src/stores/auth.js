@@ -13,8 +13,8 @@ export const useAuthStore = defineStore('auth', {
         isLoggedIn: (state) => !!state.token
     },
     actions: {
-        async login(username, password) {
-
+        async login(username, password, showToast = true) {
+            if (this.loading) return;
             this.loading = true
             const toastStore = useToastStore()
             try {
@@ -24,7 +24,9 @@ export const useAuthStore = defineStore('auth', {
                     this.token = res.data.access_token
                     localStorage.setItem('token', this.token)
                     
-                    toastStore.showToast('Login successful! Welcome back.', 'success')
+                    if (showToast) {
+                        toastStore.showToast('Login successful! Welcome back.', 'success')
+                    }
                     router.push('/')
                 }
                 return res
@@ -48,7 +50,7 @@ export const useAuthStore = defineStore('auth', {
                 
                 if (res.status >= 200 && res.status < 300) {
                     this.loading = false
-                    await this.login(username, password)
+                    await this.login(username, password, false)
                     toastStore.showToast('Registration successful! You are now logged in.', 'success')
                     return res
                 }
