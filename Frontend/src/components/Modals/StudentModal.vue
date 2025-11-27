@@ -196,7 +196,14 @@ const handleSubmit = async () => {
 
     } catch (error) {
         console.error('Error saving student:', error)
-        toastStore.showToast(error.message || 'Error saving student', 'error')
+        let message = error.message || 'Error saving student, please check inputs.';
+
+        if (error.response && error.response.status === 409) {
+            message = `Error: Student ID ${formData.student_id} already exists.`;
+        } else if (error.response && error.response.data && error.response.data.error) {
+            message = error.response.data.error;
+        }
+        toastStore.showToast(message, 'error')
     } finally {
         saving.value = false
     }
