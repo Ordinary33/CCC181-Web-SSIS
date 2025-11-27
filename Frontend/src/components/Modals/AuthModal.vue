@@ -25,6 +25,10 @@ const submitButtonLabel = computed(() => {
     return mode.value === 'login' ? 'Secure Login' : 'Create Account'
 })
 
+const handleUsernameInput = (event) => {
+    username.value = event.target.value.replace(/\s/g, '');
+}
+
 async function handleSubmit() {
     error.value = null
 
@@ -34,12 +38,15 @@ async function handleSubmit() {
     }
 
     if (mode.value === 'register') {
+
         if (password.value !== confirmPassword.value) {
             error.value = 'Passwords do not match.'
             return
         }
-        if (password.value.length < 6) {
-             error.value = 'Password must be at least 6 characters long.'
+        const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d@$!%*#?&]{8,}$/;
+        
+        if (!passwordRegex.test(password.value)) {
+            error.value = 'Password must be at least 8 characters long and contain both letters and numbers.'
             return
         }
     }
@@ -53,6 +60,14 @@ async function handleSubmit() {
     } catch (e) {
         error.value = e.message || `Failed to ${mode.value}`
     }
+}
+
+function switchMode() {
+  mode.value = mode.value === 'login' ? 'register' : 'login'
+  username.value = ''
+  password.value = ''
+  confirmPassword.value = ''
+  error.value = null
 }
 </script>
 
@@ -77,7 +92,8 @@ async function handleSubmit() {
         <label class="input input-bordered flex items-center gap-3 w-full mb-4 rounded-lg focus-within:border-[#0F766E] focus-within:ring-1 focus-within:ring-[#0F766E]">
           <img :src="UserIcon" alt="User" class="w-4 h-4 opacity-60 text-gray-400" />
           <input 
-            v-model="username" 
+            v-model="username"
+            @input="handleUsernameInput" 
             type="text" 
             class="grow placeholder-gray-400 text-sm focus:outline-none" 
             placeholder="Username" 
@@ -152,7 +168,7 @@ async function handleSubmit() {
         {{ mode === 'login' ? 'No account?' : 'Already have an account?' }}
         <a 
           href="#" 
-          @click.prevent="mode = mode === 'login' ? 'register' : 'login'; error = null" 
+          @click.prevent="switchMode"  
           class="text-[#0F766E] font-medium hover:underline transition-colors"
         >
           {{ mode === 'login' ? 'Register here.' : 'Login here.' }}

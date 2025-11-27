@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import axios from 'axios'
 import { useToastStore } from '@/stores/toasts'
 import router from '@/router'
+import { nextTick } from 'vue'
 
 export const useAuthStore = defineStore('auth', {
     state: () => ({
@@ -13,8 +14,6 @@ export const useAuthStore = defineStore('auth', {
     },
     actions: {
         async login(username, password) {
-            // FIX: Concurrency Guard - Exit immediately if already loading
-            if (this.loading) return;
 
             this.loading = true
             const toastStore = useToastStore()
@@ -38,19 +37,22 @@ export const useAuthStore = defineStore('auth', {
                 this.loading = false
             }
         },
-
         async register(username, password) {
             if (this.loading) return;
 
-            this.loading = true
+            this.loading = true 
             const toastStore = useToastStore()
+            
             try {
                 const res = await axios.post('/api/auth/register', { username, password })
                 
                 if (res.status >= 200 && res.status < 300) {
+                    this.loading = false
                     await this.login(username, password)
+                    toastStore.showToast('Registration successful! You are now logged in.', 'success')
+                    return res
                 }
-                return res
+                
             } catch (e) {
                 console.error('Register error:', e.response || e)
                 const errorMessage = e.response?.data?.error || 'Registration failed. Try a different username.'
@@ -59,6 +61,7 @@ export const useAuthStore = defineStore('auth', {
             } finally {
                 this.loading = false
             }
+            return null
         },
 
         logout() {

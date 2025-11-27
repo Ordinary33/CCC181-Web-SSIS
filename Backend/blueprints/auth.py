@@ -25,6 +25,8 @@ def register():
                 (username, password_hash)
             )
             user_id = cur.fetchone()[0]
+            
+        conn.commit()
 
     return jsonify({"message": "Account created", "user_id": user_id}), 201
 
