@@ -123,34 +123,27 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-    <!-- Modal Overlay -->
     <div v-if="modal.activeModal === 'programForm'" class="fixed inset-0 bg-black/50 z-[999] flex items-center justify-center">
-        <!-- Modal Content -->
         <div class="relative bg-white rounded-xl shadow-2xl p-6 md:p-8 w-full max-w-md transition-all duration-300">
             
-            <!-- Modal Header -->
             <h1 class="text-2xl font-extrabold text-[#0F766E] text-center pb-4 mb-6 border-b border-gray-200">
                 {{ modal.isEditMode ? 'Edit Program Details' : 'Add New Program' }}
             </h1>
 
             <form @submit.prevent="handleSubmit" class="space-y-6">
                 
-                <!-- 1. Program Code -->
                 <div class="form-group">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Program Code:</label>
                     <input type="text" v-model="formData.program_code" @input="formatProgramCode"
                         placeholder="BSCS" maxlength="20"
                         :class="[
                             'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150',
-                            errors.program_code ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]',
-                            modal.isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white'
+                            errors.program_code ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]'
                         ]"
-                        :readonly="modal.isEditMode"
                     />
                     <span v-if="errors.program_code" class="text-xs text-red-500 mt-1 block">{{ errors.program_code }}</span>
                 </div>
 
-                <!-- 2. Program Name -->
                 <div class="form-group">
                     <label class="block text-sm font-medium text-gray-700 mb-1">Program Name:</label>
                     <input type="text" v-model="formData.program_name" placeholder="Bachelor of Science in..."
@@ -162,7 +155,6 @@ const handleSubmit = async () => {
                     <span v-if="errors.program_name" class="text-xs text-red-500 mt-1 block">{{ errors.program_name }}</span>
                 </div>
 
-                <!-- 3. College -->
                 <div class="form-group">
                     <label class="block text-sm font-medium text-gray-700 mb-1">College:</label>
                     <select v-model="formData.college_code"
@@ -179,15 +171,12 @@ const handleSubmit = async () => {
                     <span v-if="errors.college_code" class="text-xs text-red-500 mt-1 block">{{ errors.college_code }}</span>
                 </div>
 
-                <!-- BUTTONS -->
                 <div class="flex justify-end gap-3 pt-4">
-                    <!-- Cancel Button -->
                     <button type="button" @click="modal.close(); resetForm()" 
                         class="btn bg-gray-500 text-white hover:bg-gray-600 border-none px-6 text-sm shadow-md"
                     >
                         Cancel
                     </button>
-                    <!-- Save Button (Deep Teal) -->
                     <button type="submit" 
                         class="btn bg-[#0F766E] text-white hover:bg-[#0d6e66] border-none px-6 text-sm shadow-md" 
                         :disabled="saving"

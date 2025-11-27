@@ -101,9 +101,7 @@ const confirmLogout = async () => {
     <div class="navbar-end">
       <div class="dropdown dropdown-end">
         <label tabindex="0" class="btn btn-ghost btn-circle avatar hover:bg-white/10 transition-colors">
-          <!-- IMPROVED AVATAR STYLE -->
           <div class="w-10 rounded-full bg-[#1D4A47] ring-2 ring-[#CCFBF1] ring-offset-2 ring-offset-[#0F766E] flex items-center justify-center shadow-md">
-             <!-- The icon is inverted to ensure it's WHITE against the dark background -->
              <img :src="UserIcon" alt="User" class="w-5 h-5 brightness-0 invert"> 
           </div>
         </label>

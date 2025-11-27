@@ -141,10 +141,8 @@ const handleSubmit = async () => {
                         maxlength="20"
                         :class="[
                             'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150',
-                            errors.college_code ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]',
-                            modal.isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white'
+                            errors.college_code ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]'
                         ]"
-                        :readonly="modal.isEditMode"
                     />
                     <span v-if="errors.college_code" class="text-xs text-red-500 mt-1 block">{{ errors.college_code }}</span>
                 </div>
