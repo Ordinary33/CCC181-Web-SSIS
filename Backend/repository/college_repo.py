@@ -6,11 +6,42 @@ class CollegeRepository:
     def __init__(self):
         self.pool = get_pool()
 
-    def get_all(self):
+    def get_paginated(self, search_term, filter_field, sort_column, sort_dir, limit, offset):
+        sql_where = ""
+        params = []
+
+        if search_term:
+            term = f"%{search_term}%"
+            
+            if filter_field == 'all':
+                sql_where = """
+                    WHERE college_code ILIKE %s 
+                    OR college_name ILIKE %s
+                """
+                params = [term] * 2
+            else:
+                sql_where = f"WHERE {filter_field}::text ILIKE %s"
+                params = [term]
+
         with self.pool.connection() as conn:
             with conn.cursor(row_factory=dict_row) as cur:
-                cur.execute(CollegeQueries.SELECT_ALL)
-                return cur.fetchall()
+                count_query = f"{CollegeQueries.COUNT_BASE} {sql_where}"
+                cur.execute(count_query, params)
+                total_records = cur.fetchone()['count']
+
+                data_query = f"""
+                    {CollegeQueries.SELECT_BASE} 
+                    {sql_where}
+                    ORDER BY {sort_column} {sort_dir}
+                    LIMIT %s OFFSET %s
+                """
+                
+                final_params = params + [limit, offset]
+                
+                cur.execute(data_query, final_params)
+                colleges = cur.fetchall()
+
+                return colleges, total_records
 
     def get_by_code(self, college_code):
         with self.pool.connection() as conn:

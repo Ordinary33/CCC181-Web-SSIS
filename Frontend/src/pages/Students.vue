@@ -102,7 +102,7 @@ const editStudent = (student) => {
         <span class="loading loading-spinner loading-lg text-info"></span>
       </div>
 
-      <div class="mt-10 max-w-6xl mx-auto overflow-hidden rounded-xl shadow-md border border-gray-200 bg-white">
+      <div v-else class="mt-10 max-w-6xl mx-auto overflow-hidden rounded-xl shadow-md border border-gray-200 bg-white">
         <table class="table w-full">
           <thead class="bg-[#F0FDFA] text-gray-700 font-bold uppercase text-xs tracking-wider">
             <tr>

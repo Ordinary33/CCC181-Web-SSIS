@@ -1,11 +1,42 @@
 from repository.college_repo import CollegeRepository
+import math
 
 class CollegeService:
     def __init__(self):
         self.repo = CollegeRepository()
+        self.COLUMN_MAP = {
+            'College Code': 'college_code',
+            'College Name': 'college_name',
+            'All': 'all'
+        }
 
-    def get_all_colleges(self):
-        return self.repo.get_all(), 200
+    def get_all_colleges(self, page, limit, search, filter_by, sort_by, sort_desc):
+        db_filter_field = self.COLUMN_MAP.get(filter_by, 'all')
+        db_sort_column = self.COLUMN_MAP.get(sort_by, 'college_code')
+        db_sort_dir = "DESC" if sort_desc == 'true' else "ASC"
+
+        offset = (page - 1) * limit
+
+        colleges, total_records = self.repo.get_paginated(
+            search, 
+            db_filter_field, 
+            db_sort_column, 
+            db_sort_dir, 
+            limit, 
+            offset
+        )
+
+        total_pages = math.ceil(total_records / limit) if limit > 0 else 1
+        
+        return {
+            "data": colleges,
+            "pagination": {
+                "total_records": total_records,
+                "total_pages": total_pages,
+                "current_page": page,
+                "limit": limit
+            }
+        }, 200
 
     def get_college(self, college_code):
         college = self.repo.get_by_code(college_code)

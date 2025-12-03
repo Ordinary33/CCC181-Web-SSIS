@@ -5,7 +5,16 @@ college_service = CollegeService()
 REQUIRED_FIELDS = ["college_code", "college_name"]
 
 def list_colleges():
-    response, status = college_service.get_all_colleges()
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    query = request.args.get("query", "", type=str)
+    filter_by = request.args.get("filterBy", "All", type=str)
+    sort_by = request.args.get("sortBy", "College Code", type=str)
+    sort_desc = request.args.get("sortDesc", "false").lower()
+
+    response, status = college_service.get_all_colleges(
+        page, limit, query, filter_by, sort_by, sort_desc
+    )
     return jsonify(response), status
 
 def get_college(college_code):

@@ -14,7 +14,6 @@ const studentsStore = useStudentsStore()
 const modal = useModalStore()
 const toastStore = useToastStore()
 
-// --- Modal & Delete Logic ---
 const showDeleteModal = ref(false)
 const itemToDelete = ref(null)
 const isDeleting = ref(false)
@@ -32,8 +31,8 @@ const handleConfirmDelete = async () => {
     await store.deleteProgram(itemToDelete.value.program_code)
     toastStore.showToast('Program deleted successfully!', 'success')
     
-    await loadData() // Refresh list
-    await studentsStore.refreshStudents() // Optional, if students depend on programs
+    await loadData() 
+    await studentsStore.refreshStudents() 
     
     showDeleteModal.value = false
     itemToDelete.value = null
@@ -45,7 +44,6 @@ const handleConfirmDelete = async () => {
   }
 }
 
-// --- Server-Side Pagination State ---
 const query = ref('')
 const filterBy = ref('All')
 const sortBy = ref('Program Code')
@@ -107,7 +105,7 @@ const editProgram = (program) => {
       <span class="loading loading-spinner loading-lg text-info"></span>
     </div>
 
-    <div class="mt-10 max-w-6xl mx-auto overflow-hidden rounded-xl shadow-md border border-gray-200 bg-white">
+    <div v-else class="mt-10 max-w-6xl mx-auto overflow-hidden rounded-xl shadow-md border border-gray-200 bg-white">
       <table class="table w-full">
         
         <thead class="bg-[#F0FDFA] text-gray-700 font-bold uppercase text-xs tracking-wider">

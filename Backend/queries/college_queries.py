@@ -1,4 +1,8 @@
 class CollegeQueries:
+    SELECT_BASE = "SELECT * FROM colleges"
+    
+    COUNT_BASE = "SELECT COUNT(*) AS count FROM colleges"
+    
     SELECT_ALL = "SELECT * FROM colleges ORDER BY college_code"
     
     SELECT_BY_CODE = "SELECT * FROM colleges WHERE college_code = %s"
