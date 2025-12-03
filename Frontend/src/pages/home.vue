@@ -14,10 +14,11 @@ const programsStore = useProgramsStore()
 const collegesStore = useCollegesStore()
 
 onMounted(async () => {
+  // We fetch page 1 just to get the 'total_records' metadata
   await Promise.all([
-    studentsStore.fetchStudents(),
-    programsStore.fetchPrograms(),
-    collegesStore.fetchColleges()
+    studentsStore.fetchStudents({ limit: 1 }), // Optimization: limit 1 is faster if we only care about the count
+    programsStore.fetchPrograms({ limit: 1 }),
+    collegesStore.fetchColleges({ limit: 1 })
   ])
 })
 </script>
@@ -42,7 +43,9 @@ onMounted(async () => {
           <div class="flex justify-between items-start">
             <div>
               <p class="text-gray-500 text-sm font-bold uppercase tracking-wider">Total Students</p>
-              <h2 class="text-4xl font-bold text-[#0F766E] mt-2">{{ studentsStore.students.length }}</h2>
+              <h2 class="text-4xl font-bold text-[#0F766E] mt-2">
+                {{ studentsStore.pagination.total_records }}
+              </h2>
             </div>
             <div class="p-3 bg-[#CCFBF1] rounded-lg text-[#0F766E]">
               <img :src="StudentIcon" alt="Student" class="w-8 h-8">
@@ -60,7 +63,9 @@ onMounted(async () => {
           <div class="flex justify-between items-start">
             <div>
               <p class="text-gray-500 text-sm font-bold uppercase tracking-wider">Academic Programs</p>
-              <h2 class="text-4xl font-bold text-[#0F766E] mt-2">{{ programsStore.programs.length }}</h2>
+              <h2 class="text-4xl font-bold text-[#0F766E] mt-2">
+                {{ programsStore.pagination.total_records }}
+              </h2>
             </div>
             <div class="p-3 bg-[#CCFBF1] rounded-lg text-[#0F766E]">
               <img :src="ProgramIcon" alt="Program" class="w-8 h-8">
@@ -78,7 +83,9 @@ onMounted(async () => {
           <div class="flex justify-between items-start">
             <div>
               <p class="text-gray-500 text-sm font-bold uppercase tracking-wider">Colleges</p>
-              <h2 class="text-4xl font-bold text-[#0F766E] mt-2">{{ collegesStore.colleges.length }}</h2>
+              <h2 class="text-4xl font-bold text-[#0F766E] mt-2">
+                {{ collegesStore.pagination.total_records }}
+              </h2>
             </div>
             <div class="p-3 bg-[#CCFBF1] rounded-lg text-[#0F766E]">
               <img :src="CollegeIcon" alt="College" class="w-8 h-8">

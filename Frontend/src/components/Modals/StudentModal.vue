@@ -13,6 +13,7 @@ const toastStore = useToastStore()
 const selectedFile = ref(null)
 const fileInputRef = ref(null)
 const previewUrl = ref('')
+const isPhotoRemoved = ref(false)
 
 const formData = reactive({
     student_id: '',
@@ -44,6 +45,7 @@ watch(
             revokePreviewUrl()
             previewUrl.value = modal.currentStudent.image_url || ''
             selectedFile.value = null
+            isPhotoRemoved.value = false 
         } else if (!isEdit) {
             resetForm()
         }
@@ -58,12 +60,14 @@ watch(
             revokePreviewUrl()
             previewUrl.value = student.image_url || ''
             selectedFile.value = null
+            isPhotoRemoved.value = false 
         }
     }
 )
 
 onMounted(() => {
-    programsStore.fetchPrograms()
+    // IMPORTANT: Fetch all programs so dropdown is not empty if pagination is used
+    programsStore.fetchAllPrograms()
 })
 
 const revokePreviewUrl = () => {
@@ -79,6 +83,8 @@ onBeforeUnmount(() => {
 const handleFileChange = (event) => {
     const file = event.target.files[0] || null
     selectedFile.value = file
+
+    isPhotoRemoved.value = false 
 
     revokePreviewUrl()
     previewUrl.value = file ? URL.createObjectURL(file) : (formData.image_url || '')
@@ -104,6 +110,16 @@ const handleAvatarKeydown = (event) => {
         event.preventDefault()
         triggerFilePicker()
     }
+}
+
+const removePhoto = () => {
+    selectedFile.value = null
+    if (fileInputRef.value) fileInputRef.value.value = ''
+
+    previewUrl.value = ''
+    formData.image_url = ''
+
+    isPhotoRemoved.value = true
 }
 
 const validateForm = () => {
@@ -175,24 +191,17 @@ const handleSubmit = async () => {
         }
 
         if (selectedFile.value) {
-            const imageUrl = await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
-
-            if (imageUrl) {
-                revokePreviewUrl()
-                formData.image_url = imageUrl
-                previewUrl.value = imageUrl
-                selectedFile.value = null
-                if (fileInputRef.value) fileInputRef.value.value = ''
-            }
+            await studentsStore.updateStudentImage(formData.student_id, selectedFile.value)
+        } 
+        else if (wasEditing && isPhotoRemoved.value) {
+            await studentsStore.removeStudentImage(formData.student_id)
         }
-
 
         await studentsStore.refreshStudents()
         resetForm()
         modal.close()
 
         toastStore.showToast(wasEditing ? 'Student updated successfully!' : 'Student added successfully!', 'success')
-        selectedFile.value = null
 
     } catch (error) {
         console.error('Error saving student:', error)
@@ -221,6 +230,7 @@ const resetForm = () => {
     selectedFile.value = null
     revokePreviewUrl()
     previewUrl.value = ''
+    isPhotoRemoved.value = false 
     if (fileInputRef.value) fileInputRef.value.value = ''
 }
 </script>
@@ -265,37 +275,27 @@ const resetForm = () => {
                                 Change Photo
                             </div>
                         </div>
+
+                        <button 
+                            v-if="displayedImage" 
+                            type="button" 
+                            @click.stop="removePhoto"
+                            class="mt-2 text-xs font-medium text-red-500 hover:text-red-700 hover:underline transition-colors focus:outline-none"
+                        >
+                            Remove Photo
+                        </button>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-x-4 gap-y-6">
-
                         <div class="md:col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Student ID:</label>
-                            <input
-                                type="text"
-                                v-model="formData.student_id"
-                                @input="formatStudentId"
-                                placeholder="2024-0001"
-                                maxlength="9"
-                                :class="[
-                                    'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150',
-                                    errors.student_id ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]',
-                                    modal.isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white'
-                                ]"
-                                :readonly="modal.isEditMode"
-                            />
+                            <input type="text" v-model="formData.student_id" @input="formatStudentId" placeholder="2024-0001" maxlength="9" :class="['w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150', errors.student_id ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]', modal.isEditMode ? 'bg-gray-100 cursor-not-allowed text-gray-500' : 'bg-white']" :readonly="modal.isEditMode" />
                             <span v-if="errors.student_id" class="text-xs text-red-500 mt-1 block">{{ errors.student_id }}</span>
                         </div>
 
                         <div class="md:col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Year Level:</label>
-                            <select
-                                v-model="formData.year_level"
-                                :class="[
-                                    'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150 appearance-none bg-white',
-                                    errors.year_level ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]'
-                                ]"
-                            >
+                            <select v-model="formData.year_level" :class="['w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150 appearance-none bg-white', errors.year_level ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]']">
                                 <option value="">Select year level...</option>
                                 <option value="1">1st Year</option>
                                 <option value="2">2nd Year</option>
@@ -307,41 +307,19 @@ const resetForm = () => {
 
                         <div class="md:col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">First Name:</label>
-                            <input
-                                type="text"
-                                v-model="formData.first_name"
-                                placeholder="John"
-                                :class="[
-                                    'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150',
-                                    errors.first_name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]'
-                                ]"
-                            />
+                            <input type="text" v-model="formData.first_name" placeholder="John" :class="['w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150', errors.first_name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]']" />
                             <span v-if="errors.first_name" class="text-xs text-red-500 mt-1 block">{{ errors.first_name }}</span>
                         </div>
 
                         <div class="md:col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Last Name:</label>
-                            <input
-                                type="text"
-                                v-model="formData.last_name"
-                                placeholder="Doe"
-                                :class="[
-                                    'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150',
-                                    errors.last_name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]'
-                                ]"
-                            />
+                            <input type="text" v-model="formData.last_name" placeholder="Doe" :class="['w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150', errors.last_name ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]']" />
                             <span v-if="errors.last_name" class="text-xs text-red-500 mt-1 block">{{ errors.last_name }}</span>
                         </div>
 
                         <div class="md:col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Gender:</label>
-                            <select
-                                v-model="formData.gender"
-                                :class="[
-                                    'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150 appearance-none bg-white',
-                                    errors.gender ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]'
-                                ]"
-                            >
+                            <select v-model="formData.gender" :class="['w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150 appearance-none bg-white', errors.gender ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]']">
                                 <option value="">Select gender...</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
@@ -350,18 +328,11 @@ const resetForm = () => {
                             <span v-if="errors.gender" class="text-xs text-red-500 mt-1 block">{{ errors.gender }}</span>
                         </div>
 
-                        <!-- 6. Program -->
                         <div class="md:col-span-1">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Program:</label>
-                            <select
-                                v-model="formData.program_code"
-                                :class="[
-                                    'w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150 appearance-none bg-white',
-                                    errors.program_code ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]'
-                                ]"
-                            >
+                            <select v-model="formData.program_code" :class="['w-full px-4 py-2 border rounded-lg text-sm transition-all duration-150 appearance-none bg-white', errors.program_code ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-[#0F766E] focus:ring-1 focus:ring-[#0F766E]']">
                                 <option value="">Select a program...</option>
-                                <option v-for="program in programsStore.programs" :key="program.program_code" :value="program.program_code">
+                                <option v-for="program in programsStore.allPrograms" :key="program.program_code" :value="program.program_code">
                                     {{ program.program_code }} - {{ program.program_name }}
                                 </option>
                             </select>

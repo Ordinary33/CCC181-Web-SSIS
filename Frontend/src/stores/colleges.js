@@ -4,8 +4,15 @@ import { useAuthStore } from './auth'
 
 export const useCollegesStore = defineStore('colleges', {
   state: () => ({
-    colleges: [],
-    loading: false
+    colleges: [], // Paginated list (Table)
+    allColleges: [], // NEW: Full list (Dropdowns)
+    loading: false,
+    pagination: {
+      total_records: 0,
+      total_pages: 1,
+      current_page: 1,
+      limit: 10
+    }
   }),
 
   getters: {
@@ -13,55 +20,70 @@ export const useCollegesStore = defineStore('colleges', {
   },
 
   actions: {
-    async fetchColleges() {
-      if (this.colleges.length > 0) return
+    getAuthHeader() {
+      return this.auth.token ? { Authorization: `Bearer ${this.auth.token}` } : {}
+    },
+
+    async fetchColleges(params = {}) {
       this.loading = true
       try {
-        const res = await axios.get('/api/colleges', this.getAuthConfig())
-        this.colleges = res.data
-      } catch (e) {
-        console.error('Fetch colleges error:', e.response || e)
+        const config = {
+          params: params,
+          headers: this.getAuthHeader()
+        }
+        const res = await axios.get('/api/colleges', config)
+        
+        this.colleges = res.data.data
+        this.pagination = res.data.pagination
+      } catch (error) {
+        console.error('Fetch colleges error:', error)
       } finally {
         this.loading = false
       }
     },
 
-    async refreshColleges() {
-      this.loading = true
+    async fetchAllColleges() {
       try {
-        const res = await axios.get('/api/colleges', this.getAuthConfig())
-        this.colleges = res.data
-      } catch (e) {
-        console.error('Refresh colleges error:', e.response || e)
-      } finally {
-        this.loading = false
+        const params = { page: 1, limit: 1000, sort_by: 'college_name' }
+        const config = { params: params, headers: this.getAuthHeader() }
+        
+        const res = await axios.get('/api/colleges', config)
+        this.allColleges = res.data.data
+      } catch (error) {
+        console.error('Fetch all colleges error:', error)
       }
+    },
+
+    async refreshColleges(params = {}) {
+      await this.fetchColleges(params)
+      await this.fetchAllColleges()
     },
 
     async createCollege(collegeData) {
       this.loading = true
       try {
-        const res = await axios.post('/api/colleges', collegeData, this.getAuthConfig())
-        this.colleges.push(res.data.college)
-        return res
-      } catch (e) {
-        console.error('Create college error:', e.response || e)
-        throw e
+        const res = await axios.post('/api/colleges', collegeData, { headers: this.getAuthHeader() })
+        return { success: true, message: res.data.message }
+      } catch (error) {
+        console.error('Create college error:', error)
+        throw new Error(error.response?.data?.error || 'Failed to create college')
       } finally {
         this.loading = false
       }
     },
 
-    async updateCollege(originalCode, updatedData) {
+    async updateCollege(collegeCode, updatedData) {
       this.loading = true
       try {
-        const res = await axios.put(`/api/colleges/${originalCode}`, updatedData, this.getAuthConfig())
-        const index = this.colleges.findIndex(c => c.college_code === originalCode)
+        const res = await axios.put(`/api/colleges/${collegeCode}`, updatedData, { headers: this.getAuthHeader() })
+        
+        const index = this.colleges.findIndex(c => c.college_code === collegeCode)
         if (index !== -1) this.colleges[index] = res.data.college
-        return res
-      } catch (e) {
-        console.error('Update college error:', e.response || e)
-        throw e
+        
+        return { success: true, message: res.data.message }
+      } catch (error) {
+        console.error('Update college error:', error)
+        throw new Error(error.response?.data?.error || 'Failed to update college')
       } finally {
         this.loading = false
       }
@@ -70,21 +92,17 @@ export const useCollegesStore = defineStore('colleges', {
     async deleteCollege(collegeCode) {
       this.loading = true
       try {
-        const res = await axios.delete(`/api/colleges/${collegeCode}`, this.getAuthConfig())
+        const res = await axios.delete(`/api/colleges/${collegeCode}`, { headers: this.getAuthHeader() })
+        
         this.colleges = this.colleges.filter(c => c.college_code !== collegeCode)
-        return res
-      } catch (e) {
-        console.error('Delete college error:', e.response || e)
-        throw e
+        
+        return { success: true, message: res.data.message }
+      } catch (error) {
+        console.error('Delete college error:', error)
+        throw new Error(error.response?.data?.error || 'Failed to delete college')
       } finally {
         this.loading = false
       }
-    },
-
-    getAuthConfig() {
-      return this.auth.token
-        ? { headers: { Authorization: `Bearer ${this.auth.token}` } }
-        : {}
     }
   }
 })

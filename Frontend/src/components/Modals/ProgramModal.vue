@@ -44,7 +44,8 @@ watch(() => modal.currentProgram, (program) => {
 })
 
 onMounted(() => {
-    collegesStore.fetchColleges()
+    // UPDATED: Fetch ALL colleges for the dropdown
+    collegesStore.fetchAllColleges()
 })
 
 const validateForm = () => {
@@ -164,7 +165,7 @@ const handleSubmit = async () => {
                         ]"
                     >
                         <option value="">Select a college...</option>
-                        <option v-for="c in collegesStore.colleges" :key="c.college_code" :value="c.college_code">
+                        <option v-for="c in collegesStore.allColleges" :key="c.college_code" :value="c.college_code">
                             {{ c.college_code }} - {{ c.college_name }}
                         </option>
                     </select>
