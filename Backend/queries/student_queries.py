@@ -1,4 +1,7 @@
 class StudentQueries:
+    SELECT_BASE = "SELECT * FROM students"
+    COUNT_BASE = "SELECT COUNT(*) AS count FROM students"
+    
     SELECT_ALL = "SELECT * FROM students ORDER BY student_id"
     
     SELECT_BY_ID = "SELECT * FROM students WHERE student_id = %s"

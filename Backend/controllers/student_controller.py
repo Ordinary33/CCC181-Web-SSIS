@@ -5,7 +5,20 @@ student_service = StudentService()
 REQUIRED_FIELDS = ["student_id", "first_name", "last_name", "year_level", "gender", "program_code"]
 
 def list_students():
-    response, status = student_service.get_all_students()
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int) 
+    query = request.args.get("query", "", type=str) 
+    
+    filter_by = request.args.get("filterBy", "All", type=str) 
+    
+    sort_by = request.args.get("sortBy", "ID", type=str) 
+    
+    sort_desc = request.args.get("sortDesc", "false").lower()
+
+    response, status = student_service.get_all_students(
+        page, limit, query, filter_by, sort_by, sort_desc
+    )
+    
     return jsonify(response), status
 
 def get_student(student_id):
@@ -14,7 +27,6 @@ def get_student(student_id):
 
 def create_student():
     data = request.get_json()
-    # Basic Input Validation
     for f in REQUIRED_FIELDS:
         if f not in data or data[f] in (None, ""):
             return jsonify({"error": f"{f} is required"}), 400

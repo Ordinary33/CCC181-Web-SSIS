@@ -1,13 +1,18 @@
 import { defineStore } from 'pinia'
 import { useAuthStore } from './auth'
 import { supabase } from '@/plugins/supabase.js'
-
 import axios from 'axios'
 
 export const useStudentsStore = defineStore('students', {
   state: () => ({
     students: [],
-    loading: false
+    loading: false,
+    pagination: {
+      total_records: 0,
+      total_pages: 1,
+      current_page: 1,
+      limit: 10
+    }
   }),
 
   getters: {
@@ -15,12 +20,17 @@ export const useStudentsStore = defineStore('students', {
   },
 
   actions: {
-    async fetchStudents() {
-      if (this.students.length > 0) return
+    async fetchStudents(params = {}) {
       this.loading = true
       try {
-        const res = await axios.get('/api/students', this.getAuthConfig())
-        this.students = res.data
+        const config = {
+          params: params,
+          ...this.getAuthConfig()
+        }
+
+        const res = await axios.get('/api/students', config)
+        this.students = res.data.data
+        this.pagination = res.data.pagination
       } catch (e) {
         console.error('Fetch students error:', e.response || e)
       } finally {
@@ -28,23 +38,14 @@ export const useStudentsStore = defineStore('students', {
       }
     },
 
-    async refreshStudents() {
-      this.loading = true
-      try {
-        const res = await axios.get('/api/students', this.getAuthConfig())
-        this.students = res.data
-      } catch (e) {
-        console.error('Refresh students error:', e.response || e)
-      } finally {
-        this.loading = false
-      }
+    async refreshStudents(params = {}) {
+      await this.fetchStudents(params)
     },
 
     async createStudent(studentData) {
       this.loading = true
       try {
         const res = await axios.post('/api/students', studentData, this.getAuthConfig())
-        this.students.push(res.data.student)
         return res
       } catch (e) {
         console.error('Create student error:', e.response || e)

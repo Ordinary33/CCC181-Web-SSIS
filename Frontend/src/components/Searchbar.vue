@@ -1,5 +1,7 @@
 <script setup>
-defineProps({
+import { ref, watch, onUnmounted } from 'vue'
+
+const props = defineProps({
   query: String,
   filter: String,
   filters: {
@@ -13,7 +15,29 @@ defineProps({
     default: () => []
   }
 })
-defineEmits(['update:query','update:filter','update:sortBy','update:sortDesc'])
+
+const emit = defineEmits(['update:query','update:filter','update:sortBy','update:sortDesc'])
+
+const localQuery = ref(props.query)
+let timer = null
+
+const onInput = () => {
+  if (timer) clearTimeout(timer)
+
+  timer = setTimeout(() => {
+    emit('update:query', localQuery.value)
+  }, 500)
+}
+
+watch(() => props.query, (newVal) => {
+  if (newVal !== localQuery.value) {
+    localQuery.value = newVal
+  }
+})
+
+onUnmounted(() => {
+  if (timer) clearTimeout(timer)
+})
 </script>
 
 <template>
@@ -32,8 +56,8 @@ defineEmits(['update:query','update:filter','update:sortBy','update:sortDesc'])
         <input 
           type="search" 
           class="grow placeholder-gray-400 focus:outline-none focus:ring-0 text-sm font-medium" 
-          :value="query" 
-          @input="$emit('update:query', $event.target.value)" 
+          v-model="localQuery"
+          @input="onInput" 
           placeholder="Search records..."
         />
       </label>
@@ -108,6 +132,3 @@ defineEmits(['update:query','update:filter','update:sortBy','update:sortDesc'])
     </div>
   </div>
 </template>
-  
-
-  

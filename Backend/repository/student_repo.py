@@ -17,6 +17,57 @@ class StudentRepository:
             with conn.cursor(row_factory=dict_row) as cur:
                 cur.execute(StudentQueries.SELECT_BY_ID, (student_id,))
                 return cur.fetchone()
+            
+    def get_paginated(self, search_term, filter_field, sort_column, sort_dir, limit, offset):
+        """
+        filter_field: The specific DB column to search (e.g., 'first_name') or 'all'
+        sort_column: The DB column to sort by (e.g., 'student_id')
+        sort_dir: 'ASC' or 'DESC'
+        """
+        
+        sql_where = ""
+        params = []
+
+        if search_term:
+            term = f"%{search_term}%"
+            
+            if filter_field == 'all':
+
+                sql_where = """
+                    WHERE student_id ILIKE %s 
+                    OR first_name ILIKE %s 
+                    OR last_name ILIKE %s 
+                    OR year_level::text ILIKE %s 
+                    OR gender ILIKE %s 
+                    OR program_code ILIKE %s
+                """
+
+                params = [term] * 6 
+            else:
+
+                sql_where = f"WHERE {filter_field}::text ILIKE %s"
+                params = [term]
+
+        with self.pool.connection() as conn:
+            with conn.cursor(row_factory=dict_row) as cur:
+
+                count_query = f"{StudentQueries.COUNT_BASE} {sql_where}"
+                cur.execute(count_query, params)
+                total_records = cur.fetchone()['count']
+
+                data_query = f"""
+                    {StudentQueries.SELECT_BASE} 
+                    {sql_where}
+                    ORDER BY {sort_column} {sort_dir}
+                    LIMIT %s OFFSET %s
+                """
+                
+                final_params = params + [limit, offset]
+                
+                cur.execute(data_query, final_params)
+                students = cur.fetchall()
+
+                return students, total_records
 
     def exists(self, student_id):
         with self.pool.connection() as conn:
