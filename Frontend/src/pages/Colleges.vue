@@ -29,13 +29,12 @@ const handleConfirmDelete = async () => {
   isDeleting.value = true
   try {
     const result = await store.deleteCollege(itemToDelete.value.college_code)
-    toastStore.showToast(result.message || 'College deleted successfully', 'success')
     
     await loadData()
     await programsStore.refreshPrograms()
-    
     showDeleteModal.value = false
     itemToDelete.value = null
+    toastStore.showToast(result.message || 'College deleted successfully', 'success')
   } catch (error) {
     console.error('Error deleting college:', error)
     toastStore.showToast(error.message || 'Failed to delete college', 'error')

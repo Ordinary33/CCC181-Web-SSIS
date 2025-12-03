@@ -29,9 +29,10 @@ const handleConfirmDelete = async () => {
   isDeleting.value = true
   try {
     await store.deleteStudent(itemToDelete.value.student_id)
-    toastStore.showToast('Student deleted successfully', 'success')
     await loadData() 
-    showDeleteModal.value = false 
+    showDeleteModal.value = false
+    itemToDelete.value = null
+    toastStore.showToast('Student deleted successfully', 'success') 
   } catch (error) {
     toastStore.showToast(error.message, 'error')
   } finally {

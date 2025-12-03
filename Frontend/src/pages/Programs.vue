@@ -29,13 +29,13 @@ const handleConfirmDelete = async () => {
   isDeleting.value = true
   try {
     await store.deleteProgram(itemToDelete.value.program_code)
-    toastStore.showToast('Program deleted successfully!', 'success')
     
     await loadData() 
     await studentsStore.refreshStudents() 
     
     showDeleteModal.value = false
     itemToDelete.value = null
+    toastStore.showToast('Program deleted successfully!', 'success')
   } catch (error) {
     console.error('Error deleting program:', error)
     toastStore.showToast(error.message || 'Failed to delete program', 'error')
