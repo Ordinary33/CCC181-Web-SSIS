@@ -56,3 +56,7 @@ def update_student_image(student_id):
 
     response, status = student_service.update_student_image(student_id, image_url)
     return jsonify(response), status
+
+def delete_student_image(student_id):
+    response, status = student_service.remove_student_image(student_id)
+    return jsonify(response), status

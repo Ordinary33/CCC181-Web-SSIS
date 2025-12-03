@@ -82,3 +82,10 @@ class StudentService:
             
         updated_student = self.repo.update_image(student_id, image_url)
         return {"message": "Student image updated successfully", "student": updated_student}, 200
+    
+    def remove_student_image(self, student_id):
+        if not self.repo.exists(student_id):
+            return {"error": "Student not found"}, 404
+            
+        updated_student = self.repo.update_image(student_id, None)
+        return {"message": "Student image removed successfully", "student": updated_student}, 200

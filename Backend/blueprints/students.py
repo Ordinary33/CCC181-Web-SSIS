@@ -33,3 +33,8 @@ def delete_student(student_id):
 @jwt_required()
 def update_student_image(student_id):
     return student_controller.update_student_image(student_id)
+
+@students_bp.route("/<student_id>/image", methods=["DELETE"], strict_slashes=False)
+@jwt_required()
+def delete_student_image(student_id):
+    return student_controller.delete_student_image(student_id)

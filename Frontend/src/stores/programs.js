@@ -5,6 +5,7 @@ import { useAuthStore } from './auth'
 export const useProgramsStore = defineStore('programs', {
   state: () => ({
     programs: [],
+    allPrograms: [], 
     loading: false,
     pagination: {
       total_records: 0,
@@ -43,8 +44,21 @@ export const useProgramsStore = defineStore('programs', {
       }
     },
 
+    async fetchAllPrograms() {
+      try {
+        const params = { page: 1, limit: 1000, sort_by: 'program_name' }
+        const config = { params: params, headers: this.getAuthHeader() }
+        
+        const res = await axios.get('/api/programs/', config)
+        this.allPrograms = res.data.data
+      } catch (error) {
+        console.error('Fetch all programs error:', error)
+      }
+    },
+
     async refreshPrograms(params = {}) {
       await this.fetchPrograms(params)
+      await this.fetchAllPrograms()
     },
 
     async createProgram(programData) {
