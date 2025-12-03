@@ -1,11 +1,44 @@
 from repository.program_repo import ProgramRepository
+import math
 
 class ProgramService:
     def __init__(self):
         self.repo = ProgramRepository()
+        
+        self.COLUMN_MAP = {
+            'Program Code': 'program_code',
+            'Program Name': 'program_name',
+            'College Code': 'college_code',
+            'All': 'all'
+        }
 
-    def get_all_programs(self):
-        return self.repo.get_all(), 200
+    def get_all_programs(self, page, limit, search, filter_by, sort_by, sort_desc):
+        db_filter_field = self.COLUMN_MAP.get(filter_by, 'all')
+        db_sort_column = self.COLUMN_MAP.get(sort_by, 'program_code')
+        db_sort_dir = "DESC" if sort_desc == 'true' else "ASC"
+
+        offset = (page - 1) * limit
+
+        programs, total_records = self.repo.get_paginated(
+            search, 
+            db_filter_field, 
+            db_sort_column, 
+            db_sort_dir, 
+            limit, 
+            offset
+        )
+
+        total_pages = math.ceil(total_records / limit) if limit > 0 else 1
+        
+        return {
+            "data": programs,
+            "pagination": {
+                "total_records": total_records,
+                "total_pages": total_pages,
+                "current_page": page,
+                "limit": limit
+            }
+        }, 200
 
     def get_program(self, program_code):
         program = self.repo.get_by_code(program_code)

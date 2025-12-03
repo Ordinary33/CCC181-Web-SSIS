@@ -1,4 +1,8 @@
 class ProgramQueries:
+    SELECT_BASE = "SELECT * FROM programs"
+    
+    COUNT_BASE = "SELECT COUNT(*) AS count FROM programs"
+    
     SELECT_ALL = "SELECT * FROM programs ORDER BY program_code"
     
     SELECT_BY_CODE = "SELECT * FROM programs WHERE program_code = %s"

@@ -5,7 +5,16 @@ program_service = ProgramService()
 REQUIRED_FIELDS = ["program_code", "program_name", "college_code"]
 
 def list_programs():
-    response, status = program_service.get_all_programs()
+    page = request.args.get("page", 1, type=int)
+    limit = request.args.get("limit", 10, type=int)
+    query = request.args.get("query", "", type=str)
+    filter_by = request.args.get("filterBy", "All", type=str)
+    sort_by = request.args.get("sortBy", "Program Code", type=str)
+    sort_desc = request.args.get("sortDesc", "false").lower()
+
+    response, status = program_service.get_all_programs(
+        page, limit, query, filter_by, sort_by, sort_desc
+    )
     return jsonify(response), status
 
 def get_program(program_code):

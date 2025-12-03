@@ -5,6 +5,44 @@ from queries.program_queries import ProgramQueries
 class ProgramRepository:
     def __init__(self):
         self.pool = get_pool()
+        
+    def get_paginated(self, search_term, filter_field, sort_column, sort_dir, limit, offset):
+        sql_where = ""
+        params = []
+
+        if search_term:
+            term = f"%{search_term}%"
+            
+            if filter_field == 'all':
+                sql_where = """
+                    WHERE program_code ILIKE %s 
+                    OR program_name ILIKE %s 
+                    OR college_code ILIKE %s
+                """
+                params = [term] * 3
+            else:
+                sql_where = f"WHERE {filter_field}::text ILIKE %s"
+                params = [term]
+
+        with self.pool.connection() as conn:
+            with conn.cursor(row_factory=dict_row) as cur:
+                count_query = f"{ProgramQueries.COUNT_BASE} {sql_where}"
+                cur.execute(count_query, params)
+                total_records = cur.fetchone()['count']
+
+                data_query = f"""
+                    {ProgramQueries.SELECT_BASE} 
+                    {sql_where}
+                    ORDER BY {sort_column} {sort_dir}
+                    LIMIT %s OFFSET %s
+                """
+                
+                final_params = params + [limit, offset]
+                
+                cur.execute(data_query, final_params)
+                programs = cur.fetchall()
+                
+                return programs, total_records
 
     def get_all(self):
         with self.pool.connection() as conn:
