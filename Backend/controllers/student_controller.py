@@ -6,17 +6,22 @@ REQUIRED_FIELDS = ["student_id", "first_name", "last_name", "year_level", "gende
 
 def list_students():
     page = request.args.get("page", 1, type=int)
-    limit = request.args.get("limit", 10, type=int) 
-    query = request.args.get("query", "", type=str) 
-    
-    filter_by = request.args.get("filterBy", "All", type=str) 
-    
-    sort_by = request.args.get("sortBy", "ID", type=str) 
-    
+    limit = request.args.get("limit", 10, type=int)
+    query = request.args.get("query", "", type=str)
+    filter_by = request.args.get("filterBy", "All", type=str)
+    sort_by = request.args.get("sortBy", "ID", type=str)
     sort_desc = request.args.get("sortDesc", "false").lower()
+    
+    program_filter = request.args.get("program", "", type=str)
+    year_filter = request.args.get("year", "", type=str)
+    gender_filter = request.args.get("gender", "", type=str)
 
+
+    print(f"DEBUG: Filtering by Year: '{year_filter}', Program: '{program_filter}', Gender: '{gender_filter}'")
+    
     response, status = student_service.get_all_students(
-        page, limit, query, filter_by, sort_by, sort_desc
+        page, limit, query, filter_by, sort_by, sort_desc, 
+        program_filter, year_filter, gender_filter
     )
     
     return jsonify(response), status

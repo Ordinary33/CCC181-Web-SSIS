@@ -18,46 +18,51 @@ class StudentRepository:
                 cur.execute(StudentQueries.SELECT_BY_ID, (student_id,))
                 return cur.fetchone()
             
-    def get_paginated(self, search_term, filter_field, sort_column, sort_dir, limit, offset):
-        """
-        filter_field: The specific DB column to search (e.g., 'first_name') or 'all'
-        sort_column: The DB column to sort by (e.g., 'student_id')
-        sort_dir: 'ASC' or 'DESC'
-        """
-        
-        sql_where = ""
+    def get_paginated(self, search_term, filter_field, sort_column, sort_dir, limit, offset, program_filter=None, year_filter=None, gender_filter=None):
+        sql_where = []
         params = []
 
         if search_term:
             term = f"%{search_term}%"
-            
             if filter_field == 'all':
-
-                sql_where = """
-                    WHERE student_id ILIKE %s 
+                sql_where.append("""
+                    (student_id ILIKE %s 
                     OR first_name ILIKE %s 
                     OR last_name ILIKE %s 
                     OR year_level::text ILIKE %s 
                     OR gender ILIKE %s 
-                    OR program_code ILIKE %s
-                """
-
-                params = [term] * 6 
+                    OR program_code ILIKE %s)
+                """)
+                params.extend([term] * 6)
             else:
+                sql_where.append(f"{filter_field}::text ILIKE %s")
+                params.append(term)
 
-                sql_where = f"WHERE {filter_field}::text ILIKE %s"
-                params = [term]
+        if program_filter:
+            sql_where.append("program_code = %s")
+            params.append(program_filter)
+
+        if year_filter:
+            sql_where.append("year_level = %s")
+            params.append(year_filter)
+
+        if gender_filter:
+            sql_where.append("gender = %s")
+            params.append(gender_filter)
+
+        where_clause = ""
+        if sql_where:
+            where_clause = "WHERE " + " AND ".join(sql_where)
 
         with self.pool.connection() as conn:
             with conn.cursor(row_factory=dict_row) as cur:
-
-                count_query = f"{StudentQueries.COUNT_BASE} {sql_where}"
+                count_query = f"{StudentQueries.COUNT_BASE} {where_clause}"
                 cur.execute(count_query, params)
                 total_records = cur.fetchone()['count']
 
                 data_query = f"""
                     {StudentQueries.SELECT_BASE} 
-                    {sql_where}
+                    {where_clause}
                     ORDER BY {sort_column} {sort_dir}
                     LIMIT %s OFFSET %s
                 """
@@ -92,7 +97,7 @@ class StudentRepository:
                 cur.execute(StudentQueries.UPDATE_STUDENT, (
                     data["student_id"], data["first_name"], data["last_name"],
                     data["year_level"], data["gender"], data["program_code"],
-                    current_id  # The ID used in the WHERE clause
+                    current_id  
                 ))
                 updated = cur.fetchone()
                 conn.commit()

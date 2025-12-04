@@ -14,11 +14,9 @@ class StudentService:
             'All': 'all' 
         }
 
-    def get_all_students(self, page, limit, search, filter_by, sort_by, sort_desc):
+    def get_all_students(self, page, limit, search, filter_by, sort_by, sort_desc, program_filter, year_filter, gender_filter):
         db_filter_field = self.COLUMN_MAP.get(filter_by, 'all')
-        
         db_sort_column = self.COLUMN_MAP.get(sort_by, 'student_id')
-        
         db_sort_dir = "DESC" if sort_desc == 'true' else "ASC"
 
         offset = (page - 1) * limit
@@ -29,7 +27,10 @@ class StudentService:
             db_sort_column, 
             db_sort_dir, 
             limit, 
-            offset
+            offset,
+            program_filter,
+            year_filter,   
+            gender_filter  
         )
 
         total_pages = math.ceil(total_records / limit) if limit > 0 else 1
