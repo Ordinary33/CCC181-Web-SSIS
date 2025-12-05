@@ -29,10 +29,13 @@ const handleConfirmDelete = async () => {
   isDeleting.value = true
   try {
     await store.deleteStudent(itemToDelete.value.student_id)
-    await loadData() 
+    
     showDeleteModal.value = false
     itemToDelete.value = null
-    toastStore.showToast('Student deleted successfully', 'success') 
+    
+    toastStore.showToast('Student deleted successfully', 'success')
+    
+    await loadData() 
   } catch (error) {
     toastStore.showToast(error.message, 'error')
   } finally {
@@ -47,13 +50,22 @@ const sortDesc = ref(false)
 const page = ref(1)
 const perPage = 10
 
+
+const selectedProgram = ref('')
+const selectedYear = ref('')
+const selectedGender = ref('')
+
 const fetchParams = computed(() => ({
   page: page.value,
   limit: perPage,
   query: query.value,
   filterBy: filterBy.value, 
   sortBy: sortBy.value,     
-  sortDesc: sortDesc.value
+  sortDesc: sortDesc.value,
+  // NEW: Pass filters to backend
+  program: selectedProgram.value,
+  year: selectedYear.value,
+  gender: selectedGender.value
 }))
 
 const loadData = async () => {
@@ -62,8 +74,10 @@ const loadData = async () => {
 
 const totalPages = computed(() => store.pagination.total_pages)
 
-
-watch([query, filterBy, sortBy, sortDesc], () => {
+watch([
+    query, filterBy, sortBy, sortDesc, 
+    selectedProgram, selectedYear, selectedGender
+], () => {
   if (page.value !== 1) {
     page.value = 1 
   } else {
@@ -76,7 +90,7 @@ watch(page, () => {
 })
 
 onMounted(() => {
-  programsStore.fetchPrograms()
+  programsStore.fetchAllPrograms()
   loadData()
 })
 
@@ -90,11 +104,18 @@ const editStudent = (student) => {
 <template>
   <div>
     <Searchbar
+      :showFilters="true"
       v-model:query="query"
       v-model:filter="filterBy"
       v-model:sortBy="sortBy"
       v-model:sortDesc="sortDesc"
-      :filters="['All','ID','First Name','Last Name','Year','Gender','Program']"
+      
+      v-model:selectedProgram="selectedProgram"
+      v-model:selectedYear="selectedYear"
+      v-model:selectedGender="selectedGender"
+      
+      :programOptions="programsStore.allPrograms"
+      :filters="['All','ID','First Name','Last Name']"
       :sortOptions="['ID','First Name','Last Name','Year','Gender','Program']"
     />
 
