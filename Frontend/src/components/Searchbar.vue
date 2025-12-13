@@ -17,7 +17,12 @@ const props = defineProps({
   selectedProgram: String,
   selectedYear: String,
   selectedGender: String,
+  selectedCollege: String,
   programOptions: {
+    type: Array,
+    default: () => []
+  },
+  collegeOptions: {
     type: Array,
     default: () => []
   },
@@ -34,7 +39,8 @@ const emit = defineEmits([
   'update:sortDesc',
   'update:selectedProgram',
   'update:selectedYear',
-  'update:selectedGender'
+  'update:selectedGender',
+  'update:selectedCollege'
 ])
 
 const localQuery = ref(props.query)
@@ -54,7 +60,7 @@ watch(() => props.query, (newVal) => {
 })
 
 const isFilterActive = computed(() => {
-  return props.selectedProgram || props.selectedYear || props.selectedGender
+  return props.selectedProgram || props.selectedYear || props.selectedGender || props.selectedCollege
 })
 
 onUnmounted(() => {
@@ -101,6 +107,20 @@ onUnmounted(() => {
           <div tabindex="0" class="dropdown-content card card-compact bg-white z-20 w-72 shadow-xl border border-gray-100 mt-2">
             <div class="card-body p-4 space-y-3">
               <h3 class="font-bold text-gray-700 text-sm border-b pb-2">Filter Records</h3>
+
+              <div class="form-control w-full">
+                <label class="label pt-0"><span class="label-text text-xs font-bold text-gray-500">College</span></label>
+                <select 
+                  class="select select-sm select-bordered w-full focus:border-[#0F766E] focus:outline-none"
+                  :value="selectedCollege"
+                  @change="$emit('update:selectedCollege', $event.target.value)"
+                >
+                  <option value="">All Colleges</option>
+                  <option v-for="col in collegeOptions" :key="col.college_code" :value="col.college_code">
+                    {{ col.college_code }} - {{ col.college_name }}
+                  </option>
+                </select>
+              </div>
               
               <div class="form-control w-full">
                 <label class="label pt-0"><span class="label-text text-xs font-bold text-gray-500">Program</span></label>
@@ -147,7 +167,7 @@ onUnmounted(() => {
 
               <div v-if="isFilterActive" class="pt-2">
                 <button 
-                  @click="$emit('update:selectedProgram', ''); $emit('update:selectedYear', ''); $emit('update:selectedGender', '')"
+                  @click="$emit('update:selectedProgram', ''); $emit('update:selectedYear', ''); $emit('update:selectedGender', ''); $emit('update:selectedCollege', '')"
                   class="btn btn-xs btn-ghost text-red-500 w-full hover:bg-red-50"
                 >
                   Clear Filters
@@ -160,7 +180,7 @@ onUnmounted(() => {
 
         <div class="dropdown dropdown-end">
           <div tabindex="0" role="button" class="btn btn-sm text-[#0F766E] border border-[#0F766E] bg-white hover:bg-[#CCFBF1] transition-colors duration-200">
-            Search by: <span class="font-bold ml-1">{{ filter }}</span>
+            Search In: <span class="font-bold ml-1">{{ filter }}</span>
           </div>
           <div tabindex="0" class="dropdown-content card card-sm bg-white z-10 w-48 shadow-xl border border-gray-100">
             <div class="card-body flex flex-col gap-2 p-4">
@@ -181,7 +201,7 @@ onUnmounted(() => {
         
         <div class="dropdown dropdown-end">
           <div tabindex="0" class="btn btn-sm text-[#0F766E] border border-[#0F766E] bg-white hover:bg-[#CCFBF1] transition-colors duration-200">
-            Sort by: <span class="font-bold ml-1">{{ sortBy }}</span>
+            Sort: <span class="font-bold ml-1">{{ sortBy }}</span>
           </div>
           <div tabindex="0" class="dropdown-content card card-sm bg-white z-10 w-48 shadow-xl border border-gray-100">
             <div class="card-body flex flex-col gap-2 p-4">
