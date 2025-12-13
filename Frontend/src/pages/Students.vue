@@ -2,6 +2,7 @@
 import { watch, ref, computed, onMounted } from 'vue'
 import { useStudentsStore } from '@/stores/students'
 import { useProgramsStore } from '@/stores/programs'
+import { useCollegesStore } from '@/stores/colleges'
 import { useModalStore } from '@/stores/modals'
 import { useToastStore } from '@/stores/toasts'
 import Searchbar from '@/components/Searchbar.vue'
@@ -11,6 +12,7 @@ import ConfirmModal from '../components/Modals/ConfirmModal.vue'
 
 const store = useStudentsStore()
 const programsStore = useProgramsStore()
+const collegesStore = useCollegesStore()
 const modal = useModalStore()
 const toastStore = useToastStore()
 
@@ -54,6 +56,27 @@ const perPage = 10
 const selectedProgram = ref('')
 const selectedYear = ref('')
 const selectedGender = ref('')
+const selectedCollege = ref('')
+
+const filteredProgramOptions = computed(() => {
+  if (!selectedCollege.value) {
+    return programsStore.allPrograms
+  }
+  
+  return programsStore.allPrograms.filter(
+    prog => prog.college_code === selectedCollege.value
+  )
+})
+
+watch(selectedCollege, (newCollege) => {
+  if (selectedProgram.value) {
+    const currentProg = programsStore.allPrograms.find(p => p.program_code === selectedProgram.value)
+    
+    if (currentProg && newCollege && currentProg.college_code !== newCollege) {
+      selectedProgram.value = ''
+    }
+  }
+})
 
 const fetchParams = computed(() => ({
   page: page.value,
@@ -62,10 +85,11 @@ const fetchParams = computed(() => ({
   filterBy: filterBy.value, 
   sortBy: sortBy.value,     
   sortDesc: sortDesc.value,
-  // NEW: Pass filters to backend
+
   program: selectedProgram.value,
   year: selectedYear.value,
-  gender: selectedGender.value
+  gender: selectedGender.value,
+  college: selectedCollege.value
 }))
 
 const loadData = async () => {
@@ -76,7 +100,7 @@ const totalPages = computed(() => store.pagination.total_pages)
 
 watch([
     query, filterBy, sortBy, sortDesc, 
-    selectedProgram, selectedYear, selectedGender
+    selectedProgram, selectedYear, selectedGender, selectedCollege
 ], () => {
   if (page.value !== 1) {
     page.value = 1 
@@ -91,6 +115,7 @@ watch(page, () => {
 
 onMounted(() => {
   programsStore.fetchAllPrograms()
+  collegesStore.fetchAllColleges()
   loadData()
 })
 
@@ -105,6 +130,7 @@ const editStudent = (student) => {
   <div>
     <Searchbar
       :showFilters="true"
+      
       v-model:query="query"
       v-model:filter="filterBy"
       v-model:sortBy="sortBy"
@@ -113,8 +139,10 @@ const editStudent = (student) => {
       v-model:selectedProgram="selectedProgram"
       v-model:selectedYear="selectedYear"
       v-model:selectedGender="selectedGender"
+      v-model:selectedCollege="selectedCollege" 
       
-      :programOptions="programsStore.allPrograms"
+      :programOptions="filteredProgramOptions" :collegeOptions="collegesStore.allColleges" 
+      
       :filters="['All','ID','First Name','Last Name']"
       :sortOptions="['ID','First Name','Last Name','Year','Gender','Program']"
     />
@@ -134,6 +162,7 @@ const editStudent = (student) => {
               <th>Year</th>
               <th>Gender</th>
               <th>Program</th>
+              <th>College</th>
               <th class="text-center">Actions</th>
             </tr>
           </thead>
@@ -174,6 +203,8 @@ const editStudent = (student) => {
                 </span>
                 <span v-else class="badge badge-accent badge-xs font-semibold text-black text-xs italic">None</span>
               </td>
+
+              <td class="text-gray-500 text-sm">{{ s.college_code || 'None' }}</td>
 
               <td class="text-center">
                 <div class="flex justify-center gap-1">

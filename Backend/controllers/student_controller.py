@@ -15,13 +15,14 @@ def list_students():
     program_filter = request.args.get("program", "", type=str)
     year_filter = request.args.get("year", "", type=str)
     gender_filter = request.args.get("gender", "", type=str)
+    college_filter = request.args.get("college", "", type=str)
 
 
-    print(f"DEBUG: Filtering by Year: '{year_filter}', Program: '{program_filter}', Gender: '{gender_filter}'")
+    print(f"DEBUG: Filtering by Year: '{year_filter}', Program: '{program_filter}', Gender: '{gender_filter}', College: '{college_filter}'")
     
     response, status = student_service.get_all_students(
         page, limit, query, filter_by, sort_by, sort_desc, 
-        program_filter, year_filter, gender_filter
+        program_filter, year_filter, gender_filter, college_filter
     )
     
     return jsonify(response), status
