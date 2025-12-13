@@ -18,7 +18,7 @@ class StudentRepository:
                 cur.execute(StudentQueries.SELECT_BY_ID, (student_id,))
                 return cur.fetchone()
             
-    def get_paginated(self, search_term, filter_field, sort_column, sort_dir, limit, offset, program_filter=None, year_filter=None, gender_filter=None):
+    def get_paginated(self, search_term, filter_field, sort_column, sort_dir, limit, offset, program_filter=None, year_filter=None, gender_filter=None, college_filter=None):
         sql_where = []
         params = []
 
@@ -27,11 +27,12 @@ class StudentRepository:
             if filter_field == 'all':
                 sql_where.append("""
                     (student_id ILIKE %s 
-                    OR first_name ILIKE %s 
-                    OR last_name ILIKE %s 
-                    OR year_level::text ILIKE %s 
-                    OR gender ILIKE %s 
-                    OR program_code ILIKE %s)
+                    OR s.first_name ILIKE %s 
+                    OR s.last_name ILIKE %s 
+                    OR s.year_level::text ILIKE %s 
+                    OR s.gender ILIKE %s 
+                    OR s.program_code ILIKE %s
+                    OR p.college_code ILIKE %s)
                 """)
                 params.extend([term] * 6)
             else:
@@ -39,16 +40,20 @@ class StudentRepository:
                 params.append(term)
 
         if program_filter:
-            sql_where.append("program_code = %s")
+            sql_where.append("s.program_code = %s")
             params.append(program_filter)
 
         if year_filter:
-            sql_where.append("year_level = %s")
+            sql_where.append("s.year_level = %s")
             params.append(year_filter)
 
         if gender_filter:
-            sql_where.append("gender = %s")
+            sql_where.append("s.gender = %s")
             params.append(gender_filter)
+            
+        if college_filter:
+            sql_where.append("p.college_code = %s") 
+            params.append(college_filter)
 
         where_clause = ""
         if sql_where:

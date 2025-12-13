@@ -1,6 +1,6 @@
 class StudentQueries:
-    SELECT_BASE = "SELECT * FROM students"
-    COUNT_BASE = "SELECT COUNT(*) AS count FROM students"
+    SELECT_BASE = "SELECT s.*, p.college_code FROM students s LEFT JOIN programs p ON s.program_code = p.program_code"
+    COUNT_BASE = "SELECT COUNT(*) AS count FROM students s LEFT JOIN programs p ON s.program_code = p.program_code"
     
     SELECT_ALL = "SELECT * FROM students ORDER BY student_id"
     
